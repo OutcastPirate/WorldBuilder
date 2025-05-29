@@ -1,0 +1,43 @@
+<div class="dialogWindow">
+  <h1>Add Object</h1>
+  <div class="modes">
+    <button class="mode" (click)="setMode('Basic')">Basic</button>
+    <button class="mode" (click)="setMode('Predefined')">Predefined</button>
+    <button class="mode" (click)="setMode('Custom')">Custom</button>
+  </div>
+  <hr>
+    <h1>{{mode}}</h1>
+  <hr>
+  <div class="controls">
+    <div *ngIf="mode == 'Basic'">
+      <div class="shapeChoice">
+        <button (click)="addBasicShape('Cube')">Add Cube</button>
+        <button (click)="addBasicShape('Sphere')">Add Sphere</button>
+        <button (click)="addBasicShape('Cylinder')">Add Cylinder</button>
+        <button (click)="addBasicShape('Torus')">Add Torus</button>
+      </div>
+    </div>
+    <div *ngIf="mode == 'Predefined'">
+      <p *ngFor="let asset of predefindedAssets">{{asset}}</p>
+    </div>
+    <div *ngIf="mode == 'Custom'">
+      <div class="customShape">
+        <p>* the program only accepts .obj, .gltf and .glb files</p>
+        <div class="formatChoice">
+          <button (click)="setFormat('obj')">OBJ</button>
+          <button (click)="setFormat('gltf')">GLTF/GLB</button>
+        </div>
+        <input type="file" (change)="onFileSelected($event)" accept=".obj, .gltf, .glb">
+        <input type="file" (change)="onMaterialFileSelected($event)" accept=".mtl">
+
+        <button (click)="chooseFile()">Load file</button>
+      </div>
+
+    </div>
+    <!-- <button (click)="addCube(1, 1, 'green', { x: 1, y: 1, z: 0.2 })">Add cube</button>
+    <button (click)="addSphere(1, 32, 32, 'red', { x: 1, y: 1, z: 0.2 })">Add sphere</button>
+    <button (click)="addCylinder(1, 1, 32, 'blue', { x: 1, y: 1, z: 0.2 })">Add cylinder</button>
+    <button (click)="addTorus(0.5, 0.2, 16, 32, 'yellow', { x: 1, y: 1, z: 0.2 })">Add torus</button> -->
+    <!-- <button (click)="openObjectDialog()">Add OBJ</button> -->
+    <button class='close' (click)="close()">X</button>
+</div>

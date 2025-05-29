@@ -1,0 +1,63 @@
+<div class="outer">
+<div class="controls">
+  <button (click)="addCube(1,1,'green',{x: 1, y: 1, z: 0.2})">Add Cube</button>
+  <button (click)="openObjectDialog()">Add From File</button>
+
+</div>
+<div class="objects">
+    <p class="info" *ngIf="objects.length == 0">No objects to display</p>
+  <div class="object" *ngFor="let object of objects; let i = index">
+    <p><strong>#{{i + 1}}</strong></p>
+    <p>Name: <input type="text" [(ngModel)]="object.name"></p>
+
+    <!-- <p>Position: {{object.position.x}}, {{object.position.y}}, {{object.position.z}}</p> -->
+     <p *ngIf="object.isMesh">
+       Color: <input type="color"  [value]="getObjectColor(object.object)"
+             (input)="setObjectColor(object.object, $event)">
+     </p>
+
+
+     <!-- <p>Color: <input type="color" [(ngModel)]="object.object.material.color.set()"></p> -->
+      <button (click)="detailsVisible[i] = !detailsVisible[i]" class="detailsButton">
+
+        <ng-container *ngIf="!detailsVisible[i]; else hideDetails">
+          Show details
+        </ng-container>
+        <ng-template #hideDetails>
+          Hide details
+        </ng-template>
+
+      </button>
+
+    <ng-container *ngIf="detailsVisible[i]">
+      <p class="category">Position:</p>
+     <p>X: <input type="Number" step="0.1" [(ngModel)]="object.object.position.x"></p>
+     <p>Y: <input type="Number" step="0.1" [(ngModel)]="object.object.position.y"></p>
+     <p>Z: <input type="Number" step="0.1" [(ngModel)]="object.object.position.z"></p>
+     <hr>
+    <p  class="category">Scale:</p>
+    <p class="checkbox">Keep scale ratio: <input  type="checkbox" [(ngModel)]="object.keepRatio" (ngModelChange)="changeScale(object, object.object.scale.x)"></p>
+    <ng-container *ngIf="object.keepRatio; else elseTemplate">
+      <p>X: <input type="Number" step="0.1" [(ngModel)]="object.object.scale.x" (ngModelChange)="changeScale(object, object.object.scale.x)"></p>
+      <p>Y: <input type="Number" step="0.1" [(ngModel)]="object.object.scale.y" (ngModelChange)="changeScale(object, object.object.scale.y)"></p>
+      <p>Z: <input type="Number" step="0.1" [(ngModel)]="object.object.scale.z" (ngModelChange)="changeScale(object, object.object.scale.z)"></p>
+    </ng-container>
+    <ng-template #elseTemplate>
+      <p>X: <input type="Number" step="0.1" [(ngModel)]="object.object.scale.x"></p>
+      <p>Y: <input type="Number" step="0.1" [(ngModel)]="object.object.scale.y"></p>
+      <p>Z: <input type="Number" step="0.1" [(ngModel)]="object.object.scale.z"></p>
+    </ng-template>
+    <hr>
+    <p  class="category">Rotation:</p>
+    <p>X: <input type="Number" step="0.1" [(ngModel)]="object.object.rotation.x"></p>
+     <p>Y: <input type="Number" step="0.1" [(ngModel)]="object.object.rotation.y"></p>
+     <p>Z: <input type="Number" step="0.1" [(ngModel)]="object.object.rotation.z"></p>
+    </ng-container>
+
+
+    <hr>
+    <button (click)="deleteObject(object)" class="deleteButton">Delete object</button>
+
+  </div>
+</div>
+</div>

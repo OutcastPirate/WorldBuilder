@@ -1,0 +1,52 @@
+.menu {
+  flex-grow: 1;
+  color: white;
+  background-color: #202020;
+
+}
+
+.menu,
+.menuContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  max-height: 100vh;
+  overflow-y: hidden;
+}
+
+.menuContent {
+  padding: 10px;
+  width: calc(100% - 20px);
+}
+
+h1 {
+  padding: 10px;
+  font-weight: bolder;
+}
+
+hr {
+  width: 90%;
+  border-radius: 100%;
+}
+
+.menus {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+
+  button {
+    padding: 10px 20px;
+    font-weight: bolder;
+    margin: 10px;
+    background-color: #303030;
+    color: white;
+    border: 3px outset white;
+    border-radius: 5px;
+
+    &:hover {
+      cursor: pointer;
+      border: 3px inset white;
+    }
+  }
+}
