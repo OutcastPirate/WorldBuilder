@@ -5,6 +5,8 @@ import { Position } from '../interfaces/position';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AssetInstance, AssetInterface } from '../interfaces/assetInstance';
 import { AssetLoaderService } from './asset-loader.service';
+import { BasicShapesService } from './basic-shapes.service';
+import { RaycasterService } from './raycaster.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +14,9 @@ import { AssetLoaderService } from './asset-loader.service';
 export class ObjectsService {
   constructor(
     private sceneService: SceneService,
-    private assetLoader: AssetLoaderService
+    private assetLoader: AssetLoaderService,
+    private basicShapes: BasicShapesService,
+    private raycaster: RaycasterService
   ) {}
 
   private _objects = new BehaviorSubject<AssetInstance[]>([]);
@@ -139,20 +143,81 @@ export class ObjectsService {
     height: number,
     width: number,
     color: string,
-    position: Position
+    position?: Position
   ): void {
-    const geometry = new THREE.BoxGeometry(width, 1, height);
-    const material = new THREE.MeshStandardMaterial({ color: color });
-    geometry.translate(position.x, position.y, position.z);
-    const cube = new THREE.Mesh(geometry, material);
+    const cube = this.basicShapes.getCube(height, width, color, position);
     this.addObject(new AssetInstance('Cube', cube, true));
     this.sceneService.getScene().add(cube);
   }
 
-  // moveCube(index: number, translation: Position): void {
-  //   const object = this.objects[index];
-  //   object.position.x += translation.x;
-  //   object.position.y += translation.y;
-  //   object.position.z += translation.z;
-  // }
+  addCylinder(
+    height: number,
+    width: number,
+    color: string,
+    position?: Position
+  ): void {
+    const shape = this.basicShapes.getCylinder(height, width, color, position);
+    this.addObject(new AssetInstance('Cylinder', shape, true));
+    this.sceneService.getScene().add(shape);
+  }
+
+  addSphere(
+    height: number,
+    width: number,
+    color: string,
+    position?: Position
+  ): void {
+    const shape = this.basicShapes.getSphere(height, width, color, position);
+    this.addObject(new AssetInstance('Sphere', shape, true));
+    this.sceneService.getScene().add(shape);
+  }
+
+  addCone(
+    height: number,
+    width: number,
+    color: string,
+    position?: Position
+  ): void {
+    const shape = this.basicShapes.getCone(height, width, color, position);
+    this.addObject(new AssetInstance('Cone', shape, true));
+    this.sceneService.getScene().add(shape);
+  }
+
+  snapDown(object: THREE.Object3D, snapDistance = 0.1): void {
+    const intersections = this.raycaster.castDown(
+      object,
+      this.sceneService.getScene()
+    );
+
+    const validIntersections = intersections.filter((i) => i.object !== object);
+
+    if (validIntersections.length > 0) {
+      const closest = validIntersections[0];
+
+      const box = new THREE.Box3().setFromObject(object);
+      const objectHeight = box.max.y - box.min.y;
+      const objectBottom = object.position.y - objectHeight / 2;
+
+      object.position.y = closest.point.y + objectHeight / 2 + snapDistance;
+    }
+  }
+
+  snapDownPrototype(object: THREE.Object3D, snapDistance = 0.1): void {
+    const intersections = this.raycaster.castDown(
+      object,
+      this.sceneService.getScene()
+    );
+
+    const validIntersections = intersections.filter((i) => i.object !== object);
+
+    if (validIntersections.length > 0) {
+      const closest = validIntersections[0];
+
+      const box = new THREE.Box3().setFromObject(object);
+      const objectHeight = box.max.y - box.min.y;
+      const objectBottom = object.position.y - objectHeight / 2;
+
+      object.position.y = closest.point.y;
+    }
+  }
 }

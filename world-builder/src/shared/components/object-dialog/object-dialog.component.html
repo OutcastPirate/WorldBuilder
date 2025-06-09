@@ -10,11 +10,18 @@
   <hr>
   <div class="controls">
     <div *ngIf="mode == 'Basic'">
+        <div class="shapeParameters">
+        <p>Shape height: <input type="number" [(ngModel)]="basicShape.height"></p>
+        <p>Shape width: <input type="number" [(ngModel)]="basicShape.width"></p>
+        <p>Shape color: <input type="color" [(ngModel)]="basicShape.color" class="color"></p>
+
+        </div>
       <div class="shapeChoice">
-        <button (click)="addBasicShape('Cube')">Add Cube</button>
-        <button (click)="addBasicShape('Sphere')">Add Sphere</button>
-        <button (click)="addBasicShape('Cylinder')">Add Cylinder</button>
-        <button (click)="addBasicShape('Torus')">Add Torus</button>
+
+        <button (click)="addBasicShape('Cube',basicShape)">Add Cube</button>
+        <button (click)="addBasicShape('Sphere',basicShape)">Add Sphere</button>
+        <button (click)="addBasicShape('Cylinder',basicShape)">Add Cylinder</button>
+        <button (click)="addBasicShape('Cone',basicShape)">Add Cone</button>
       </div>
     </div>
     <div *ngIf="mode == 'Predefined'">

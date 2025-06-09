@@ -1,0 +1,40 @@
+hr {
+  border-radius: 100%;
+  width: 80%;
+  margin: 10px 0px;
+}
+
+.sceneControls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 25vw;
+}
+
+h3 {
+  margin-bottom: 10px;
+}
+
+button {
+  border: 3px solid gray;
+  padding: 10px 20px;
+  font-weight: bolder;
+  color: white;
+  background-color: #202020;
+
+  &:hover {
+    cursor: pointer;
+    background-color: #444444;
+  }
+}
+
+.fog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 0px;
+
+  p {
+    margin: 10px 0px;
+  }
+}

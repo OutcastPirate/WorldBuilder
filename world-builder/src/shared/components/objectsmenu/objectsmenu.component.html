@@ -1,7 +1,6 @@
 <div class="outer">
 <div class="controls">
-  <button (click)="addCube(1,1,'green',{x: 1, y: 1, z: 0.2})">Add Cube</button>
-  <button (click)="openObjectDialog()">Add From File</button>
+  <button (click)="openObjectDialog()">Add Object</button>
 
 </div>
 <div class="objects">
@@ -11,10 +10,11 @@
     <p>Name: <input type="text" [(ngModel)]="object.name"></p>
 
     <!-- <p>Position: {{object.position.x}}, {{object.position.y}}, {{object.position.z}}</p> -->
-     <p *ngIf="object.isMesh">
+     <span *ngIf="object.isMesh">
+      <p>
        Color: <input type="color"  [value]="getObjectColor(object.object)"
-             (input)="setObjectColor(object.object, $event)">
-     </p>
+             (input)="setObjectColor(object.object, $event)"></p>
+      </span>
 
 
      <!-- <p>Color: <input type="color" [(ngModel)]="object.object.material.color.set()"></p> -->
@@ -52,6 +52,10 @@
     <p>X: <input type="Number" step="0.1" [(ngModel)]="object.object.rotation.x"></p>
      <p>Y: <input type="Number" step="0.1" [(ngModel)]="object.object.rotation.y"></p>
      <p>Z: <input type="Number" step="0.1" [(ngModel)]="object.object.rotation.z"></p>
+    <hr>
+    <p  class="category">Additional:</p>
+    <button (click)="snapObjectDownward(object.object)">Snap down</button>
+    <button (click)="snapObjectDownwardProto(object.object)">Snap down (prototype)</button>
     </ng-container>
 
 

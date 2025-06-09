@@ -1,4 +1,17 @@
-<h2>Base</h2>
-<input type="number" [(ngModel)]="terrain.position.x">
-<input type="number" [(ngModel)]="terrain.position.y">
-<input type="number" [(ngModel)]="terrain.position.z">
+<div class="sceneControls" *ngIf="scene">
+  <button (click)="restoreDefault()">Restore Default</button>
+<hr>
+<h3>Scene:</h3>
+<p>Color: <input type="color" [(ngModel)]="backgroundColor" (ngModelChange)="changeBackground()"></p>
+<hr>
+<h3>Fog:</h3>
+<button (click)="addFog()" *ngIf="!scene.fog">Add fog</button>
+<span class="fog" *ngIf="scene.fog">
+  <p>Density:<input type="number" [(ngModel)]="scene.fog.density" step="0.01">  </p>
+  <p>Fog Color: <input type="color" [(ngModel)]="fogColor" (ngModelChange)="changeFogColor()"></p>
+<button (click)="removeFog()">Remove fog</button>
+
+</span>
+
+</div>
+

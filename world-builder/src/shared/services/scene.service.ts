@@ -8,6 +8,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import * as THREE from 'three';
 import { Position } from '../interfaces/position';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class SceneService implements OnDestroy {
@@ -33,6 +34,40 @@ export class SceneService implements OnDestroy {
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
+
+  private _sceneObjects = new BehaviorSubject<any[]>([]);
+  private _terrain = new BehaviorSubject<any>(null);
+  private _scene = new BehaviorSubject<any>(null);
+  private _camera = new BehaviorSubject<any>(null);
+  private _renderer = new BehaviorSubject<any>(null);
+
+  updateBehaviorSubjects() {
+    this._scene.next(this.scene);
+    this._camera.next(this.camera);
+    this._renderer.next(this.renderer);
+    this._terrain.next(this.terrain);
+  }
+
+  setBehaviorSubjects() {
+    this.scene = this._scene.getValue();
+    this.camera = this._camera.getValue();
+    this.renderer = this._renderer.getValue();
+    this.terrain = this._terrain.getValue();
+  }
+
+  addSceneObject(object: any): void {
+    const currentObjects = this._sceneObjects.getValue();
+    this._sceneObjects.next([...currentObjects, object]);
+    this.scene.add(object);
+
+    this.updateBehaviorSubjects();
+  }
+  // Public observable for components to subscribe to
+  sceneObjects$: Observable<any[]> = this._sceneObjects.asObservable();
+  terrain$: Observable<any> = this._terrain.asObservable();
+  scene$: Observable<any> = this._scene.asObservable();
+  camera$: Observable<any> = this._camera.asObservable();
+  renderer$: Observable<any> = this._renderer.asObservable();
 
   getTerrain(): THREE.Mesh {
     if (!this.terrain) {
@@ -76,8 +111,11 @@ export class SceneService implements OnDestroy {
 
     geometry.rotateX(-Math.PI / 2);
     const plane = new THREE.Mesh(geometry, material);
-    this.scene.add(plane);
+    this.addSceneObject(plane);
     this.terrain = plane;
+    this._terrain.next(plane);
+    console.log(plane);
+    this.updateBehaviorSubjects();
   }
 
   init(container: HTMLElement): void {
@@ -90,7 +128,9 @@ export class SceneService implements OnDestroy {
     this.renderer.setSize(width, height);
     container.appendChild(this.renderer.domElement);
 
-    this.scene = new THREE.Scene();
+    // Use the scene from the BehaviorSubject
+    this.scene = this._scene.getValue() || new THREE.Scene();
+
     this.scene.background = new THREE.Color(0x202020);
 
     this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 3000);
@@ -125,6 +165,8 @@ export class SceneService implements OnDestroy {
 
     this.startAnimation();
     this.addDisplacedPlane();
+
+    this.updateBehaviorSubjects();
   }
 
   private startAnimation(): void {
@@ -142,20 +184,24 @@ export class SceneService implements OnDestroy {
       };
       animate();
     });
+    this.updateBehaviorSubjects();
   }
 
   stopRotation(): void {
     this.sceneRotation = false;
     this.startAnimation();
+    this.updateBehaviorSubjects();
   }
 
   startRotation(): void {
     this.sceneRotation = true;
     this.startAnimation();
+    this.updateBehaviorSubjects();
   }
 
   resetRotation(): void {
     this.scene.rotation.y = 0;
+    this.updateBehaviorSubjects();
   }
 
   rotateScene(direction: string): void {
@@ -164,6 +210,7 @@ export class SceneService implements OnDestroy {
     } else if (direction === 'right') {
       this.scene.rotation.y += 0.1;
     }
+    this.updateBehaviorSubjects();
   }
 
   onResize(container: HTMLElement): void {
@@ -175,6 +222,7 @@ export class SceneService implements OnDestroy {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+    this.updateBehaviorSubjects();
   }
 
   ngOnDestroy(): void {
@@ -184,5 +232,6 @@ export class SceneService implements OnDestroy {
     if (this.isBrowser && this.renderer) {
       this.renderer.dispose();
     }
+    this.updateBehaviorSubjects();
   }
 }

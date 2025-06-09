@@ -4,11 +4,12 @@ import { DialogRef } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { OnInit } from '@angular/core';
 import { ObjectsService } from '../../services/objects.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-object-dialog',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './object-dialog.component.html',
   styleUrl: './object-dialog.component.scss',
 })
@@ -25,6 +26,12 @@ export class ObjectDialogComponent implements OnInit {
   mode: string = 'Basic';
 
   chosenFormat: string = 'OBJ';
+
+  basicShape: any = {
+    width: 1,
+    height: 1,
+    color: '#ffffff',
+  };
 
   setFormat(format: string): void {
     this.chosenFormat = format;
@@ -43,8 +50,41 @@ export class ObjectDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  addBasicShape(shape: string): void {
-    console.log(`Adding basic shape: ${shape}`);
+  addBasicShape(shape: string, shapeData: any): void {
+    switch (shape) {
+      case 'Cube':
+        this.objectService.addCube(
+          shapeData.height,
+          shapeData.width,
+          shapeData.color
+        );
+        break;
+      case 'Sphere':
+        this.objectService.addSphere(
+          shapeData.height,
+          shapeData.width,
+          shapeData.color
+        );
+        break;
+      case 'Cylinder':
+        this.objectService.addCylinder(
+          shapeData.height,
+          shapeData.width,
+          shapeData.color
+        );
+        break;
+      case 'Cone':
+        this.objectService.addCone(
+          shapeData.height,
+          shapeData.width,
+          shapeData.color
+        );
+        break;
+      default:
+        console.error(`Unknown shape: ${shape}`);
+        break;
+    }
+    this.close();
   }
 
   chooseFile(): void {

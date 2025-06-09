@@ -76,6 +76,14 @@ export class ObjectsmenuComponent {
     object.object.updateMatrix();
   }
 
+  snapObjectDownward(object: any) {
+    this.objectsService.snapDown(object);
+  }
+
+  snapObjectDownwardProto(object: any) {
+    this.objectsService.snapDownPrototype(object);
+  }
+
   setObjectColor(object: THREE.Object3D, event: Event): void {
     if (!isMesh(object)) return;
 
