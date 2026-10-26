@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { SceneService } from './scene.service';
 import * as THREE from 'three';
-import { Position } from '../interfaces/position';
 import { BehaviorSubject, Observable, skip, Subject } from 'rxjs';
 import { PlacementBlocker } from '../generation/placement';
-import { AssetInstance } from '../interfaces/assetInstance';
+import { AssetInstance, ObjectOrigin, ShapeKind } from '../interfaces/assetInstance';
 import { AssetLibraryService } from './asset-library.service';
 import { PredefinedAsset } from '../interfaces/predefinedAsset';
 import { AssetLoaderService } from './asset-loader.service';
@@ -90,7 +89,7 @@ export class ObjectsService {
     group.position.copy(position);
     group.rotation.y = rotationY;
     group.scale.setScalar(scale);
-    return this.addToScene(asset.name, group, false, assetId);
+    return this.addToScene(asset.name, group, { kind: 'library', assetId });
   }
 
   // Ground areas automatic placement should keep clear of (see
@@ -106,14 +105,15 @@ export class ObjectsService {
     });
   }
 
+  // Removes every hand-placed object from the list and the scene.
   clearObjects(): void {
-    this._objects.next([]);
+    [...this._objects.getValue()].forEach((o) => this.removeObject(o));
   }
 
   // Loads a user-selected file (.obj with optional .mtl, .gltf, .glb).
   // Note: files referencing other files (.gltf with an external .bin, textures
   // used by an .mtl) cannot be resolved from a single picked file.
-  async addFromFile(file: File, material?: File): Promise<void> {
+  async addFromFile(file: File, material?: File): Promise<AssetInstance | undefined> {
     const extension = this.getExtension(file.name);
     const objectUrl = URL.createObjectURL(file);
     const mtlUrl = material ? URL.createObjectURL(material) : undefined;
@@ -124,9 +124,10 @@ export class ObjectsService {
         extension,
         mtlUrl
       );
-      this.addToScene(this.stripExtension(file.name), object);
+      return this.addToScene(this.stripExtension(file.name), object, { kind: 'file', file, material });
     } catch (error) {
       console.error(`Error loading ${file.name}:`, error);
+      return undefined;
     } finally {
       // Clean up the Object URLs to avoid memory leaks
       URL.revokeObjectURL(objectUrl);
@@ -134,7 +135,7 @@ export class ObjectsService {
     }
   }
 
-  async addPredefined(asset: PredefinedAsset): Promise<void> {
+  async addPredefined(asset: PredefinedAsset): Promise<AssetInstance | undefined> {
     const basePath = AssetLoaderService.PREDEFINED_PATH;
     try {
       const object = await this.assetLoader.loadModel(
@@ -142,50 +143,37 @@ export class ObjectsService {
         this.getExtension(asset.file),
         asset.material ? basePath + asset.material : undefined
       );
-      this.addToScene(asset.name, object);
+      return this.addToScene(asset.name, object, { kind: 'predefined', id: asset.id });
     } catch (error) {
       console.error(`Error loading ${asset.name}:`, error);
+      return undefined;
     }
   }
 
-  addCube(
-    height: number,
-    width: number,
-    color: string,
-    position?: Position
-  ): void {
-    const cube = this.basicShapes.getCube(height, width, color, position);
-    this.addToScene('Cube', cube, true);
+  addShape(shape: ShapeKind, height: number, width: number, color: string): AssetInstance {
+    const build = {
+      Cube: () => this.basicShapes.getCube(height, width, color),
+      Cylinder: () => this.basicShapes.getCylinder(height, width, color),
+      Sphere: () => this.basicShapes.getSphere(height, width, color),
+      Cone: () => this.basicShapes.getCone(height, width, color),
+    }[shape];
+    return this.addToScene(shape, build(), { kind: 'shape', shape, height, width }, true);
   }
 
-  addCylinder(
-    height: number,
-    width: number,
-    color: string,
-    position?: Position
-  ): void {
-    const shape = this.basicShapes.getCylinder(height, width, color, position);
-    this.addToScene('Cylinder', shape, true);
+  addCube(height: number, width: number, color: string): AssetInstance {
+    return this.addShape('Cube', height, width, color);
   }
 
-  addSphere(
-    height: number,
-    width: number,
-    color: string,
-    position?: Position
-  ): void {
-    const shape = this.basicShapes.getSphere(height, width, color, position);
-    this.addToScene('Sphere', shape, true);
+  addCylinder(height: number, width: number, color: string): AssetInstance {
+    return this.addShape('Cylinder', height, width, color);
   }
 
-  addCone(
-    height: number,
-    width: number,
-    color: string,
-    position?: Position
-  ): void {
-    const shape = this.basicShapes.getCone(height, width, color, position);
-    this.addToScene('Cone', shape, true);
+  addSphere(height: number, width: number, color: string): AssetInstance {
+    return this.addShape('Sphere', height, width, color);
+  }
+
+  addCone(height: number, width: number, color: string): AssetInstance {
+    return this.addShape('Cone', height, width, color);
   }
 
   // Moves the object vertically so the bottom of its bounding box rests on the
@@ -230,9 +218,10 @@ export class ObjectsService {
   private addToScene(
     name: string,
     object: THREE.Object3D,
-    isMesh = false,
-    assetId?: string
+    origin: ObjectOrigin,
+    isMesh = false
   ): AssetInstance {
+    const assetId = origin.kind === 'library' ? origin.assetId : undefined;
     object.traverse((child) => {
       child.castShadow = true;
       child.receiveShadow = true;
@@ -242,6 +231,7 @@ export class ObjectsService {
     // clicked point with the pivot above the base).
     this.snapDown(object);
     const instance = new AssetInstance(name, object, isMesh, true, assetId);
+    instance.origin = origin;
     this.addObject(instance);
     return instance;
   }

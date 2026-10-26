@@ -20,6 +20,14 @@ export class SceneMenuComponent implements OnInit {
   scene: any;
   backgroundColor: any = '#202020';
   fogColor: any = '#cccccc';
+  // Remembered while switching tabs.
+  private static statsShown = false;
+  get showStats(): boolean {
+    return SceneMenuComponent.statsShown;
+  }
+  set showStats(value: boolean) {
+    SceneMenuComponent.statsShown = value;
+  }
 
   constructor(
     private sceneService: SceneService,
@@ -72,6 +80,11 @@ export class SceneMenuComponent implements OnInit {
   removeFog() {
     this.scene.fog = null;
     this.scene.background = new THREE.Color(this.backgroundColor);
+  }
+
+  setShowStats(show: boolean): void {
+    this.showStats = show;
+    this.sceneService.setStatsEnabled(show);
   }
 
   ngOnDestroy(): void {

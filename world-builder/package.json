@@ -10,7 +10,8 @@
     "test": "ng test",
     "electron:dev": "concurrently -k -n ng,electron -c blue,magenta \"ng serve\" \"wait-on http-get://localhost:4200 && node scripts/start-electron.js --dev\"",
     "electron:start": "ng build && node scripts/start-electron.js",
-    "electron": "node scripts/start-electron.js"
+    "electron": "node scripts/start-electron.js",
+    "benchmark": "node scripts/benchmark.mjs"
   },
   "private": true,
   "dependencies": {
@@ -38,6 +39,7 @@
     "@types/three": "^0.176.0",
     "concurrently": "^9.1.2",
     "electron": "^36.3.1",
+    "esbuild": "^0.20.1",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",

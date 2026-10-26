@@ -1,0 +1,55 @@
+<div class="exportPanel">
+  <section>
+    <h3>Include</h3>
+    <label class="check" for="export-sides">
+      <input id="export-sides" type="checkbox" [(ngModel)]="options.terrainSides"> Terrain sides and base
+    </label>
+    <label class="check" for="export-generated">
+      <input id="export-generated" type="checkbox" [(ngModel)]="options.generatedObjects">
+      Generated objects <small>({{ generatedCount.toLocaleString('en') }})</small>
+    </label>
+    <label class="check" for="export-hand">
+      <input id="export-hand" type="checkbox" [(ngModel)]="options.handPlacedObjects">
+      Hand-placed objects <small>({{ handPlacedCount.toLocaleString('en') }})</small>
+    </label>
+  </section>
+
+  <p class="status" *ngIf="status" [class.error]="status.error" role="status">{{ status.text }}</p>
+  <p class="status error" *ngIf="!ready">Generate a terrain first.</p>
+
+  <section class="format">
+    <h3>3D model · GLB <span class="chip">recommended</span></h3>
+    <p>Terrain, texture and all objects in one file.</p>
+    <p class="hint">
+      In Unity: Window › Package Manager › + › Add package by name ›
+      <code>com.unity.cloud.gltfast</code>, then drag the file into Assets.
+    </p>
+    <label class="check" for="export-instancing">
+      <input id="export-instancing" type="checkbox" [(ngModel)]="options.gpuInstancing">
+      GPU instancing <small>one node per model instead of one per object; only if your importer supports EXT_mesh_gpu_instancing</small>
+    </label>
+    <button (click)="run('glb')" [disabled]="!ready || exporting">
+      {{ exporting === 'glb' ? 'Exporting…' : 'Export GLB…' }}
+    </button>
+  </section>
+
+  <section class="format">
+    <h3>OBJ + MTL</h3>
+    <p>A folder with <code>world.obj</code>, <code>world.mtl</code> and the terrain texture.</p>
+    <p class="hint">Unity imports it without extra packages. Every object is written out in full, so files get large with many objects.</p>
+    <button (click)="run('obj')" [disabled]="!ready || exporting">
+      {{ exporting === 'obj' ? 'Exporting…' : 'Export OBJ…' }}
+    </button>
+  </section>
+
+  <section class="format">
+    <h3>Unity Terrain data</h3>
+    <p>
+      <code>heightmap.raw</code>, <code>splatmap.png</code> (one texture zone per channel),
+      <code>objects.json</code> and a README with the import settings for a native Unity Terrain.
+    </p>
+    <button (click)="run('terrain')" [disabled]="!ready || exporting">
+      {{ exporting === 'terrain' ? 'Exporting…' : 'Export terrain data…' }}
+    </button>
+  </section>
+</div>

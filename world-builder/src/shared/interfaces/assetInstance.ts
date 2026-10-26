@@ -1,5 +1,14 @@
 import { Object3D } from 'three';
 
+export type ShapeKind = 'Cube' | 'Sphere' | 'Cylinder' | 'Cone';
+
+// How a hand-placed object was made, so a saved project can rebuild it.
+export type ObjectOrigin =
+  | { kind: 'library'; assetId: string }
+  | { kind: 'predefined'; id: string }
+  | { kind: 'shape'; shape: ShapeKind; height: number; width: number }
+  | { kind: 'file'; file: File; material?: File };
+
 export interface AssetInterface {
   name: string;
   object: Object3D;
@@ -19,6 +28,7 @@ export class AssetInstance implements AssetInterface {
   keepRatio: boolean;
   isMesh?: boolean;
   assetId?: string;
+  origin?: ObjectOrigin;
   snapToGround = true;
 
   constructor(

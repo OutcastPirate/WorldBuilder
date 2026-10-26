@@ -22,23 +22,79 @@
 }
 
 h1 {
-  padding: 10px;
+  padding: 10px 10px 0px;
   font-weight: bolder;
   text-align: center;
+}
+
+.menuHeader {
+  width: 100%;
+  text-align: center;
+}
+
+.projectName {
+  padding: 0px 10px 6px;
+  font-size: 0.85rem;
+  color: lightgray;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// New / Open / Save, or the confirmation for New.
+.project {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+  padding: 0px 10px 8px;
+
+  button {
+    padding: 6px 4px;
+    font-size: 0.85rem;
+  }
+
+  &.confirm {
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    font-size: 0.85rem;
+  }
+
+  .danger {
+    background-color: darkred;
+  }
+}
+
+.message {
+  width: 100%;
+  padding: 0px 10px 8px;
+  font-size: 0.8rem;
+  color: lightgray;
+  overflow-wrap: anywhere;
+
+  &.error {
+    color: tomato;
+  }
 }
 
 hr {
   width: 90%;
 }
 
+// Five tabs on one row, equal widths.
 .menus {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
   width: 100%;
+  padding: 10px 6px;
 
   button {
-    padding: 10px 10px;
-    margin: 10px 2px;
+    min-width: 0;
+    padding: 8px 1px;
+    font-size: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

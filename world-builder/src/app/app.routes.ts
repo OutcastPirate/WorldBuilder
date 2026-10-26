@@ -4,6 +4,7 @@ import { SceneMenuComponent } from '../shared/components/scene-menu/scene-menu.c
 import { ObjectsTabComponent } from '../shared/components/objects-tab/objects-tab.component';
 import { TerrainPanelComponent } from '../shared/components/terrain-panel/terrain-panel.component';
 import { TexturingPanelComponent } from '../shared/components/texturing-panel/texturing-panel.component';
+import { ExportPanelComponent } from '../shared/components/export-panel/export-panel.component';
 
 export const routes: Routes = [
   {
@@ -16,6 +17,7 @@ export const routes: Routes = [
       { path: 'texturingMenu', component: TexturingPanelComponent },
       { path: 'objectsMenu', component: ObjectsTabComponent },
       { path: 'sceneMenu', component: SceneMenuComponent },
+      { path: 'exportMenu', component: ExportPanelComponent },
     ],
   },
 ];

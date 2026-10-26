@@ -10,6 +10,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+export interface RenderStats {
+  fps: number;
+  frameMs: number;
+  drawCalls: number;
+  triangles: number;
+}
+
 // Owns the renderer, camera, controls and lights. The terrain itself is
 // built by TerrainMeshService.
 @Injectable({ providedIn: 'root' })
@@ -39,6 +46,50 @@ export class SceneService implements OnDestroy {
   setOrbitEnabled(enabled: boolean): void {
     this.controls.enabled = enabled;
   }
+  // Background colour and fog, for saving a project.
+  getSceneSettings(): { background: string; fog: { color: string; density: number } | null } {
+    const background = this.scene.background instanceof THREE.Color ? this.scene.background : new THREE.Color(0x202020);
+    const fog = this.scene.fog instanceof THREE.FogExp2 ? this.scene.fog : null;
+    return {
+      background: `#${background.getHexString()}`,
+      fog: fog ? { color: `#${fog.color.getHexString()}`, density: fog.density } : null,
+    };
+  }
+
+  applySceneSettings(settings: { background: string; fog: { color: string; density: number } | null }): void {
+    this.scene.background = new THREE.Color(settings.background);
+    this.scene.fog = settings.fog ? new THREE.FogExp2(settings.fog.color, settings.fog.density) : null;
+    this._scene.next(this.scene);
+  }
+
+  // Performance figures, updated twice a second while enabled.
+  private _stats = new BehaviorSubject<RenderStats | null>(null);
+  stats$: Observable<RenderStats | null> = this._stats.asObservable();
+  private statsEnabled = false;
+  private statsWindow = { start: 0, frames: 0 };
+
+  setStatsEnabled(enabled: boolean): void {
+    this.statsEnabled = enabled;
+    this.statsWindow = { start: performance.now(), frames: 0 };
+    if (!enabled) this._stats.next(null);
+  }
+
+  private updateStats(): void {
+    if (!this.statsEnabled) return;
+    this.statsWindow.frames++;
+    const elapsed = performance.now() - this.statsWindow.start;
+    if (elapsed < 500) return;
+    const info = this.renderer.info.render;
+    const stats: RenderStats = {
+      fps: Math.round((this.statsWindow.frames * 1000) / elapsed),
+      frameMs: Math.round((elapsed / this.statsWindow.frames) * 10) / 10,
+      drawCalls: info.calls,
+      triangles: info.triangles,
+    };
+    this.statsWindow = { start: performance.now(), frames: 0 };
+    this.ngZone.run(() => this._stats.next(stats));
+  }
+
   // Runs `callback` before every rendered frame, outside Angular's zone.
   addFrameCallback(callback: () => void): void {
     this.frameCallbacks.push(callback);
@@ -139,6 +190,7 @@ export class SceneService implements OnDestroy {
         this.controls.update();
         this.frameCallbacks.forEach((callback) => callback());
         this.renderer.render(this.scene, this.camera);
+        this.updateStats();
       };
       animate();
     });

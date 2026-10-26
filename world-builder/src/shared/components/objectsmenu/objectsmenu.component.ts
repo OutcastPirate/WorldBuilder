@@ -64,15 +64,6 @@ export class ObjectsmenuComponent {
     this.dialog.open<string>(ObjectDialogComponent);
   }
 
-  addCube(
-    height: number,
-    width: number,
-    color: string,
-    position: { x: number; y: number; z: number }
-  ): void {
-    this.objectsService.addCube(height, width, color, position);
-  }
-
   getObjectColor(object: THREE.Object3D): string {
     if (!isMesh(object)) return '#ffffff';
 

@@ -96,17 +96,51 @@ export class AssetLibraryService {
     return this._assets.getValue().find((asset) => asset.id === id);
   }
 
-  // Adds a user's model to a category for this session.
+  // Adds a user's model to a category (kept in saved projects).
   addUpload(file: File, category: PlacementCategoryId, material?: File): LibraryAsset {
-    const asset: LibraryAsset = {
-      id: `upload:${++this.uploadCount}`,
+    return this.restoreUpload({
+      id: `upload:${this.uploadCount + 1}`,
       name: file.name.replace(/\.[^.]+$/, ''),
       category,
       height: DEFAULT_UPLOAD_HEIGHT[category],
-      source: { kind: 'upload', file, material },
+      file,
+      material,
+    });
+  }
+
+  // Adds an uploaded model under a known id (when opening a project).
+  restoreUpload(upload: {
+    id: string;
+    name: string;
+    category: PlacementCategoryId;
+    height: number;
+    file: File;
+    material?: File;
+  }): LibraryAsset {
+    const number = Number(upload.id.replace('upload:', ''));
+    if (Number.isFinite(number)) this.uploadCount = Math.max(this.uploadCount, number);
+    this.prototypes.delete(upload.id);
+    const asset: LibraryAsset = {
+      id: upload.id,
+      name: upload.name,
+      category: upload.category,
+      height: upload.height,
+      source: { kind: 'upload', file: upload.file, material: upload.material },
     };
-    this._assets.next([...this._assets.getValue(), asset]);
+    this._assets.next([...this._assets.getValue().filter((a) => a.id !== upload.id), asset]);
     return asset;
+  }
+
+  // Models the user uploaded into categories.
+  uploads(): LibraryAsset[] {
+    return this._assets.getValue().filter((asset) => asset.source.kind === 'upload');
+  }
+
+  // Forgets all uploaded models (new or opened project).
+  clearUploads(): void {
+    this.uploads().forEach((asset) => this.prototypes.delete(asset.id));
+    this._assets.next(this._assets.getValue().filter((asset) => asset.source.kind !== 'upload'));
+    this.uploadCount = 0;
   }
 
   getPrototype(id: string): Promise<AssetPrototype> {
@@ -135,7 +169,7 @@ export class AssetLibraryService {
           extension(source.file),
           source.material ? base + source.material : undefined
         );
-        if (source.color) applyColor(group, source.color);
+        if (source.color) applyColor(group, source.color, asset.name);
         return group;
       }
       case 'upload': {
@@ -157,8 +191,8 @@ function extension(fileName: string): string {
 }
 
 // Replaces the materials of a model that came without a material file.
-function applyColor(group: THREE.Group, color: string): void {
-  const material = new THREE.MeshStandardMaterial({ color, roughness: 0.9 });
+function applyColor(group: THREE.Group, color: string, name: string): void {
+  const material = new THREE.MeshStandardMaterial({ name, color, roughness: 0.9 });
   group.traverse((child) => {
     if (child instanceof THREE.Mesh) child.material = material;
   });

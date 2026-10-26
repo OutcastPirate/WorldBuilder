@@ -1,13 +1,31 @@
 <div class="menu">
   <div class="menuHeader">
     <h1>World Builder</h1>
+    <p class="projectName" [title]="(project.name$ | async) ?? ''">{{ project.name$ | async }}</p>
   </div>
+
+  <div class="project" *ngIf="!confirmingNew; else confirmNew">
+    <button (click)="confirmingNew = true" [disabled]="busy">New</button>
+    <button (click)="projectFile.click()" [disabled]="busy" title="Ctrl+O">{{ busy === 'opening' ? 'Opening…' : 'Open…' }}</button>
+    <button (click)="save()" [disabled]="busy" title="Ctrl+S">{{ busy === 'saving' ? 'Saving…' : 'Save…' }}</button>
+    <input #projectFile type="file" accept=".json,application/json" hidden (change)="open($event)">
+  </div>
+  <ng-template #confirmNew>
+    <div class="project confirm">
+      <span>Discard this world and start a new one?</span>
+      <button class="danger" (click)="newProject()">New world</button>
+      <button (click)="confirmingNew = false">Cancel</button>
+    </div>
+  </ng-template>
+  <p class="message" *ngIf="message" [class.error]="message.error" role="status">{{ message.text }}</p>
+
   <hr>
   <div class="menus">
     <button routerLink="/terrainMenu" routerLinkActive="active">Terrain</button>
     <button routerLink="/texturingMenu" routerLinkActive="active">Textures</button>
     <button routerLink="/objectsMenu" routerLinkActive="active">Objects</button>
     <button routerLink="/sceneMenu" routerLinkActive="active">Scene</button>
+    <button routerLink="/exportMenu" routerLinkActive="active">Export</button>
   </div>
   <hr>
   <div class="menuContent">

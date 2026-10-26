@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { TexturingConfig } from '../generation/config';
+import { FileSaveService, SaveResult } from './file-save.service';
 import {
   BUILT_IN_PRESETS,
   parseTexturingConfig,
@@ -17,6 +18,8 @@ const STORAGE_KEY = 'worldBuilder.texturingPresets.v1';
   providedIn: 'root',
 })
 export class TexturingPresetsService {
+  constructor(private fileSave: FileSaveService) {}
+
   private _presets = new BehaviorSubject<TexturingPreset[]>([
     ...BUILT_IN_PRESETS,
     ...this.loadUserPresets(),
@@ -55,21 +58,18 @@ export class TexturingPresetsService {
     this.storeUserPresets(this.userPresets().filter((p) => p.id !== id));
   }
 
-  // Downloads the preset as a .json file.
-  exportToFile(preset: TexturingPreset): void {
+  // Saves the preset as a .json file.
+  exportToFile(preset: TexturingPreset): Promise<SaveResult> {
     const file: TexturingPresetFile = {
       format: PRESET_FILE_FORMAT,
       version: 1,
       name: preset.name,
       texturing: preset.texturing,
     };
-    const blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${preset.name.replace(/[^\w\- ]+/g, '').trim() || 'preset'}.texturing.json`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const name = `${preset.name.replace(/[^\w\- ]+/g, '').trim() || 'preset'}.texturing.json`;
+    return this.fileSave.saveFile(name, JSON.stringify(file, null, 2), [
+      { name: 'Texturing preset', extensions: ['json'] },
+    ]);
   }
 
   // Reads a preset file and saves it as a user preset.

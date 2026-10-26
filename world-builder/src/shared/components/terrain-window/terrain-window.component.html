@@ -8,5 +8,11 @@
 
 </div>
   <app-selection-bar></app-selection-bar>
+  <dl class="stats" *ngIf="terrainRenderer.stats$ | async as stats" aria-label="Performance">
+    <div><dt>FPS</dt><dd>{{ stats.fps }}</dd></div>
+    <div><dt>Frame</dt><dd>{{ stats.frameMs }} ms</dd></div>
+    <div><dt>Draw calls</dt><dd>{{ stats.drawCalls }}</dd></div>
+    <div><dt>Triangles</dt><dd>{{ stats.triangles.toLocaleString('en') }}</dd></div>
+  </dl>
 </div>
 

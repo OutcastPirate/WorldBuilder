@@ -11,4 +11,8 @@
     <p>Fog Color: <input type="color" [(ngModel)]="fogColor" (ngModelChange)="changeFogColor()"></p>
     <button (click)="removeFog()">Remove fog</button>
   </div>
+  <hr>
+  <h3>Performance</h3>
+  <p><input id="show-stats" type="checkbox" [ngModel]="showStats" (ngModelChange)="setShowStats($event)">
+    <label for="show-stats">Show frame rate, draw calls and triangles</label></p>
 </div>

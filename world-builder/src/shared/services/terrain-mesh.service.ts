@@ -37,6 +37,16 @@ export class TerrainMeshService {
     return this.heightmap;
   }
 
+  // Sides and bottom of the terrain block.
+  getBase(): THREE.Group | undefined {
+    return this.base;
+  }
+
+  // Settings the current terrain was built from.
+  getBuiltConfig(): TerrainConfig | null {
+    return this._builtConfig.getValue();
+  }
+
   async generate(
     config: TerrainConfig = this.configService.config.terrain
   ): Promise<void> {
@@ -115,12 +125,13 @@ export class TerrainMeshService {
     const radius = worldSize / 2;
     const heightAt = (x: number, z: number) =>
       sampleHeightmap(map, x / worldSize + 0.5, z / worldSize + 0.5) * heightScale;
+    const clamped = new Uint8Array(position.count);
     for (let i = 0; i < position.count; i++) {
       let x = position.getX(i);
       let z = position.getZ(i);
       if (config.shape === 'circle') {
-        // Pull vertices outside the circle onto its rim. Triangles that lie
-        // fully outside collapse to nothing; the rest form a round edge.
+        // Pull vertices outside the circle onto its rim; the triangles that
+        // cross the circle then end exactly on a round edge.
         const r = Math.hypot(x, z);
         if (r > radius) {
           x *= radius / r;
@@ -128,11 +139,24 @@ export class TerrainMeshService {
           position.setX(i, x);
           position.setZ(i, z);
           uv.setXY(i, x / worldSize + 0.5, 0.5 - z / worldSize);
+          clamped[i] = 1;
         }
         position.setY(i, heightAt(x, z));
       } else {
         position.setY(i, map.data[i] * heightScale);
       }
+    }
+    if (config.shape === 'circle') {
+      // Triangles that lay fully outside the circle would only be slivers
+      // along the rim; drop them (also keeps them out of exported files).
+      const index = geometry.index!.array;
+      const kept: number[] = [];
+      for (let t = 0; t < index.length; t += 3) {
+        if (!(clamped[index[t]] && clamped[index[t + 1]] && clamped[index[t + 2]])) {
+          kept.push(index[t], index[t + 1], index[t + 2]);
+        }
+      }
+      geometry.setIndex(kept);
     }
     geometry.computeVertexNormals();
     this.updateBase(geometry, config);
@@ -143,6 +167,7 @@ export class TerrainMeshService {
     } else {
       // Plain green until the first texture bake arrives.
       const material = new THREE.MeshStandardMaterial({
+        name: 'Terrain',
         color: 0x4f7f3a,
         roughness: 0.95,
       });
@@ -202,8 +227,8 @@ export class TerrainMeshService {
 
     const material = (options: THREE.MeshStandardMaterialParameters) =>
       new THREE.MeshStandardMaterial({ roughness: 1, side: THREE.DoubleSide, ...options });
-    const wallMesh = new THREE.Mesh(walls.build(), (this.baseMaterials.walls ??= material({ vertexColors: true })));
-    const bottomMesh = new THREE.Mesh(bottomGeometry, (this.baseMaterials.bottom ??= material({ color: 0x2f241a })));
+    const wallMesh = new THREE.Mesh(walls.build(), (this.baseMaterials.walls ??= material({ name: 'Terrain sides', vertexColors: true })));
+    const bottomMesh = new THREE.Mesh(bottomGeometry, (this.baseMaterials.bottom ??= material({ name: 'Terrain bottom', color: 0x2f241a })));
     wallMesh.castShadow = wallMesh.receiveShadow = true;
 
     this.base = new THREE.Group().add(wallMesh, bottomMesh);

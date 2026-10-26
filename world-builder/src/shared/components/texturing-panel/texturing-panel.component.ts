@@ -125,14 +125,19 @@ export class TexturingPanelComponent implements OnInit, OnDestroy {
     this.message = { text: `Deleted "${preset.name}". The current settings are kept.`, error: false };
   }
 
-  exportPreset(): void {
+  async exportPreset(): Promise<void> {
     const base = this.selectedPreset?.name ?? 'Custom texturing';
-    this.presetsService.exportToFile({
-      id: '',
-      name: this.modified ? `${base} (modified)` : base,
-      builtIn: false,
-      texturing: this.texturing,
-    });
+    try {
+      const result = await this.presetsService.exportToFile({
+        id: '',
+        name: this.modified ? `${base} (modified)` : base,
+        builtIn: false,
+        texturing: this.texturing,
+      });
+      if (result.kind === 'saved') this.message = { text: `Saved to ${result.path}`, error: false };
+    } catch (error) {
+      this.message = { text: `Export failed: ${(error as Error).message}`, error: true };
+    }
   }
 
   async importPreset(event: Event): Promise<void> {

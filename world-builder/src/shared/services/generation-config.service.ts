@@ -30,6 +30,20 @@ export class GenerationConfigService {
     return this._config.getValue();
   }
 
+  // Replaces every setting (new or opened project).
+  setConfig(config: GenerationConfig): void {
+    this._config.next(structuredClone(config));
+  }
+
+  // All settings back to their defaults.
+  reset(): void {
+    this.setConfig({
+      terrain: DEFAULT_TERRAIN_CONFIG,
+      texturing: DEFAULT_TEXTURING_CONFIG,
+      placement: DEFAULT_PLACEMENT_CONFIG,
+    });
+  }
+
   updateTerrain(patch: Partial<TerrainConfig>): void {
     const current = this.config;
     this._config.next({

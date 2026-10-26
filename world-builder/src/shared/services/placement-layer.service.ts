@@ -109,6 +109,21 @@ export class PlacementLayerService implements OnDestroy {
     return box;
   }
 
+  // Generated objects the user deleted (for saving a project).
+  getRemovedKeys(): string[] {
+    return [...this.removedKeys];
+  }
+
+  // Restores deletions from a project. They are kept as long as placement
+  // runs with exactly these settings and this terrain.
+  restoreRemovedKeys(keys: string[], placement: PlacementConfig, terrain: TerrainConfig): void {
+    // Applied when a run with these exact inputs finishes; a run started
+    // before the project was opened must not clear them.
+    this.pendingRemoved = { keys, inputs: JSON.stringify([placement, terrain]) };
+  }
+
+  private pendingRemoved?: { keys: string[]; inputs: string };
+
   getMatrix(id: string): THREE.Matrix4 | undefined {
     return this.matrices.get(id)?.clone();
   }
@@ -152,8 +167,15 @@ export class PlacementLayerService implements OnDestroy {
         )
       )
       .subscribe(({ result, inputs }) => {
-        if (result) {
-          if (inputs !== this.lastInputs) this.removedKeys.clear();
+        // A run started before a project was opened is out of date.
+        const stale = !!this.pendingRemoved && inputs !== this.pendingRemoved.inputs;
+        if (result && !stale) {
+          if (this.pendingRemoved) {
+            this.removedKeys = new Set(this.pendingRemoved.keys);
+            this.pendingRemoved = undefined;
+          } else if (inputs !== this.lastInputs) {
+            this.removedKeys.clear();
+          }
           this.lastInputs = inputs;
           this.objects = result.objects.filter((o) => !this.removedKeys.has(objectKey(o)));
           this.limitReached = result.limitReached;

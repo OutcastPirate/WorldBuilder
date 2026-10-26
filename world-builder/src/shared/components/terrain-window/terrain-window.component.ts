@@ -12,20 +12,21 @@ import { TexturingService } from '../../services/texturing.service';
 import { PlacementLayerService } from '../../services/placement-layer.service';
 import { SelectionService } from '../../services/selection.service';
 import { SelectionBarComponent } from '../selection-bar/selection-bar.component';
+import { AsyncPipe, NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-terrain-window',
   templateUrl: './terrain-window.component.html',
   styleUrls: ['./terrain-window.component.scss'],
   standalone: true,
-  imports: [SelectionBarComponent],
+  imports: [SelectionBarComponent, NgIf, AsyncPipe],
 })
 export class TerrainWindowComponent implements AfterViewInit, OnDestroy {
   @ViewChild('rendererContainer', { static: true })
   rendererContainer!: ElementRef;
 
   constructor(
-    private terrainRenderer: SceneService,
+    public terrainRenderer: SceneService,
     private terrainMesh: TerrainMeshService,
     private texturing: TexturingService,
     private placementLayer: PlacementLayerService,

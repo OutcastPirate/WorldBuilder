@@ -1,0 +1,75 @@
+// Fill the side menu below the tabs and scroll inside it.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.exportPanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 15px;
+  min-height: 0;
+  padding: 0px 10px 20px;
+  overflow-y: auto;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.format {
+  padding: 10px;
+  border: 3px ridge gray;
+  border-radius: 10px;
+
+  button {
+    align-self: flex-start;
+    padding: 8px 16px;
+  }
+}
+
+.check {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+small,
+.hint {
+  color: gray;
+}
+
+.hint {
+  font-size: 0.85rem;
+}
+
+code {
+  font-family: inherit;
+  color: lightgray;
+}
+
+.chip {
+  margin-left: 6px;
+  padding: 0px 8px;
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--wb-accent);
+  border: 1px solid currentColor;
+  border-radius: 99px;
+}
+
+.status {
+  font-size: 0.85rem;
+  color: lightgray;
+  overflow-wrap: anywhere;
+
+  &.error {
+    color: tomato;
+  }
+}
