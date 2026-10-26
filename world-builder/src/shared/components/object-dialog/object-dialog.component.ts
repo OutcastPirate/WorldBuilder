@@ -1,10 +1,13 @@
 import { Component } from '@angular/core';
-import { Dialog } from '@angular/cdk/dialog';
 import { DialogRef } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
 import { OnInit } from '@angular/core';
 import { ObjectsService } from '../../services/objects.service';
+import { AssetLoaderService } from '../../services/asset-loader.service';
+import { PredefinedAsset } from '../../interfaces/predefinedAsset';
 import { FormsModule } from '@angular/forms';
+
+const SUPPORTED_EXTENSIONS = ['obj', 'gltf', 'glb'];
 
 @Component({
   selector: 'app-object-dialog',
@@ -16,7 +19,8 @@ import { FormsModule } from '@angular/forms';
 export class ObjectDialogComponent implements OnInit {
   constructor(
     private dialogRef: DialogRef,
-    private objectService: ObjectsService
+    private objectService: ObjectsService,
+    private assetLoader: AssetLoaderService
   ) {}
 
   ngOnInit(): void {
@@ -25,25 +29,24 @@ export class ObjectDialogComponent implements OnInit {
 
   mode: string = 'Basic';
 
-  chosenFormat: string = 'OBJ';
-
   basicShape: any = {
     width: 1,
     height: 1,
     color: '#ffffff',
   };
 
-  setFormat(format: string): void {
-    this.chosenFormat = format;
-  }
-
-  predefindedAssets: string[] = [];
+  predefinedAssets: PredefinedAsset[] = [];
+  loadingAsset: string | null = null;
+  errorMessage: string | null = null;
 
   chosenFile: File | null = null;
   chosenMaterialFile: File | null = null;
 
   setMode(mode: string): void {
     this.mode = mode;
+    this.errorMessage = null;
+    this.chosenFile = null;
+    this.chosenMaterialFile = null;
   }
 
   close(): void {
@@ -87,33 +90,37 @@ export class ObjectDialogComponent implements OnInit {
     this.close();
   }
 
-  chooseFile(): void {
+  async addPredefined(asset: PredefinedAsset): Promise<void> {
+    this.loadingAsset = asset.name;
+    await this.objectService.addPredefined(asset);
+    this.loadingAsset = null;
+    this.close();
+  }
+
+  async chooseFile(): Promise<void> {
     if (!this.chosenFile) {
-      console.error('No file selected');
+      this.errorMessage = 'No file selected';
       return;
     }
-    const fileName = this.chosenFile.name;
-    const fileExtension = fileName.split('.').pop()?.toLowerCase();
-    if (fileExtension !== 'obj' && fileExtension !== 'gltf') {
-      console.error('Selected file is not an OBJ or GLTF file');
+    const fileExtension = this.chosenFile.name.split('.').pop()?.toLowerCase();
+    if (!fileExtension || !SUPPORTED_EXTENSIONS.includes(fileExtension)) {
+      this.errorMessage = 'Selected file is not an OBJ, GLTF or GLB file';
       return;
     }
-    if (fileExtension === 'gltf') {
-      this.objectService.addGLTF(this.chosenFile);
-    } else if (fileExtension === 'obj') {
-      if (this.chosenMaterialFile) {
-        this.objectService.addOBJ(this.chosenFile, this.chosenMaterialFile);
-      } else {
-        this.objectService.addOBJ(this.chosenFile);
-      }
-    }
+    this.loadingAsset = this.chosenFile.name;
+    await this.objectService.addFromFile(
+      this.chosenFile,
+      fileExtension === 'obj' ? this.chosenMaterialFile ?? undefined : undefined
+    );
+    this.loadingAsset = null;
+    this.close();
   }
 
   onFileSelected(event: any): void {
     const file: File = event.target.files && event.target.files[0];
     if (file) {
       this.chosenFile = file;
-      const filePath = event.target.value || file.name;
+      this.errorMessage = null;
     }
   }
 
@@ -121,9 +128,16 @@ export class ObjectDialogComponent implements OnInit {
     const file: File = event.target.files && event.target.files[0];
     if (file) {
       this.chosenMaterialFile = file;
-      const filePath = event.target.value || file.name;
     }
   }
 
-  loadAssets(): void {}
+  loadAssets(): void {
+    this.assetLoader
+      .loadPredefinedManifest()
+      .then((assets) => (this.predefinedAssets = assets))
+      .catch((error) => {
+        console.error(error);
+        this.errorMessage = 'Could not load the predefined asset list';
+      });
+  }
 }

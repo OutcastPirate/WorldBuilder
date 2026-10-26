@@ -1,0 +1,117 @@
+<div class="texturingPanel" *ngIf="texturing">
+  <section>
+    <div class="sectionHeader">
+      <h3>Preset</h3>
+      <span class="chip" *ngIf="modified && selectedPreset">modified</span>
+    </div>
+    <select id="texturing-preset" [ngModel]="selectedPresetId" (ngModelChange)="applyPreset($event)">
+      <option value="" disabled *ngIf="!selectedPreset">Unsaved settings</option>
+      <optgroup label="Built-in">
+        <ng-container *ngFor="let preset of presets">
+          <option *ngIf="preset.builtIn" [value]="preset.id">{{ preset.name }}</option>
+        </ng-container>
+      </optgroup>
+      <optgroup label="My presets">
+        <ng-container *ngFor="let preset of presets">
+          <option *ngIf="!preset.builtIn" [value]="preset.id">{{ preset.name }}</option>
+        </ng-container>
+      </optgroup>
+    </select>
+
+    <div class="buttons" *ngIf="savingName === null && !confirmingDelete">
+      <button class="small" (click)="startSave()">Save as…</button>
+      <button class="small" (click)="confirmingDelete = true" [disabled]="!selectedPreset || selectedPreset.builtIn">Delete</button>
+      <button class="small" (click)="exportPreset()">Export</button>
+      <button class="small" (click)="presetFile.click()">Import</button>
+      <input #presetFile type="file" accept=".json,application/json" hidden (change)="importPreset($event)">
+    </div>
+
+    <form class="inline" *ngIf="savingName !== null" (submit)="$event.preventDefault(); confirmSave()">
+      <input id="preset-name" type="text" placeholder="Preset name" maxlength="40" [(ngModel)]="savingName" name="presetName" autofocus>
+      <button class="small" type="submit">Save</button>
+      <button class="small" type="button" (click)="savingName = null">Cancel</button>
+    </form>
+
+    <div class="inline" *ngIf="confirmingDelete">
+      <span>Delete "{{ selectedPreset?.name }}"?</span>
+      <button class="small danger" (click)="deletePreset()">Delete</button>
+      <button class="small" (click)="confirmingDelete = false">Cancel</button>
+    </div>
+
+    <p class="message" *ngIf="message" [class.error]="message.error">{{ message.text }}</p>
+  </section>
+
+  <hr>
+
+  <section>
+    <div class="sectionHeader">
+      <h3>Height zones</h3>
+      <small class="baking" *ngIf="baking">Updating texture…</small>
+    </div>
+    <div class="zoneBar">
+      <div class="bar" #bar [style.background]="barGradient()"></div>
+      <span class="zoneLabel" *ngFor="let i of zoneOrder" [style.bottom.%]="zoneCenter(i)">{{ texturing.zones[i].name }}</span>
+      <button
+        *ngFor="let t of texturing.thresholds; let i = index; trackBy: trackByIndex"
+        class="handle"
+        role="slider"
+        [style.bottom.%]="t * 100"
+        [attr.aria-label]="'Boundary between ' + texturing.zones[i].name + ' and ' + texturing.zones[i + 1].name"
+        aria-valuemin="0"
+        aria-valuemax="1"
+        [attr.aria-valuenow]="t"
+        (pointerdown)="startDrag(i, $event)"
+        (pointermove)="drag(i, $event)"
+        (pointerup)="endDrag()"
+        (pointercancel)="endDrag()"
+        (keydown)="nudge(i, $event)">
+        <span class="value">{{ t.toFixed(2) }}</span>
+      </button>
+    </div>
+    <small class="hint">Drag a boundary, or focus it and use the arrow keys.</small>
+
+    <div class="slider">
+      <label for="blend-width">
+        <span>Blend width</span>
+        <output>{{ texturing.blendWidth.toFixed(3) }}</output>
+      </label>
+      <input id="blend-width" type="range" [min]="blendRange.min" [max]="blendRange.max" [step]="blendRange.step"
+        [ngModel]="texturing.blendWidth" (ngModelChange)="setBlendWidth($event)">
+      <small>0: hard edges · higher: softer transitions between zones</small>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h3>Zone materials</h3>
+    <div class="zone" *ngFor="let i of zoneOrder">
+      <ng-container *ngIf="texturing.zones[i] as zone">
+        <div class="zoneHead">
+          <app-zone-swatch [zone]="zone"></app-zone-swatch>
+          <input [id]="'zone-name-' + i" type="text" maxlength="40" aria-label="Zone name"
+            [ngModel]="zone.name" (ngModelChange)="updateZone(i, { name: $event })">
+          <input [id]="'zone-color-' + i" type="color" aria-label="Zone colour"
+            [ngModel]="zone.color" (ngModelChange)="updateZone(i, { color: $event })">
+        </div>
+        <label class="field" [for]="'zone-texture-' + i">
+          <span>Texture</span>
+          <select [id]="'zone-texture-' + i" [ngModel]="textureValue(zone)" (ngModelChange)="setTexture(i, $event)">
+            <option value="none">None (colour only)</option>
+            <option *ngFor="let t of builtinTextures" [value]="t.value">{{ t.label }}</option>
+            <option value="image" *ngIf="zone.texture?.type === 'image'">Image: {{ $any(zone.texture).name }}</option>
+          </select>
+        </label>
+        <div class="field">
+          <button class="small" (click)="chooseImage(i)">Upload image…</button>
+          <label class="tile" [for]="'zone-tile-' + i" *ngIf="zone.texture">
+            <span>Tile (m)</span>
+            <input [id]="'zone-tile-' + i" type="number" [min]="tileRange.min" [max]="tileRange.max" [step]="tileRange.step"
+              [ngModel]="zone.tileSize" (ngModelChange)="setTileSize(i, $event)">
+          </label>
+        </div>
+      </ng-container>
+    </div>
+    <input #imageInput type="file" accept="image/png,image/jpeg,image/webp" hidden (change)="onImageSelected($event)">
+  </section>
+</div>

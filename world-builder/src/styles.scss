@@ -1,8 +1,178 @@
 /* You can add global styles to this file, and also import other style files */
+@use '@angular/cdk';
+
+// Structural styles for CDK overlays (required by the CDK Dialog in v17,
+// without them dialogs render in the page flow instead of on top of it).
+@include cdk.overlay();
+
+:root {
+  color-scheme: dark;
+
+  --wb-bg: #202020;
+  --wb-surface: #303030;
+  --wb-surface-hover: #404040;
+  --wb-border: gray;
+  --wb-text: white;
+  --wb-text-muted: lightgray;
+  --wb-accent: #4a90e2;
+  --wb-danger: darkred;
+  --wb-danger-hover: rgb(175, 16, 16);
+}
+
 html,
 body,
 * {
   margin: 0;
   padding: 0;
   font-family: 'Courier New', Courier, monospace;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--wb-bg);
+  color: var(--wb-text);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+hr {
+  border: none;
+  border-top: 3px ridge var(--wb-border);
+}
+
+// Default control styles; components only override layout where needed.
+button {
+  padding: 8px 16px;
+  font-weight: bolder;
+  color: var(--wb-text);
+  background-color: var(--wb-surface);
+  border: 3px outset white;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover:not(:disabled),
+  &.active {
+    border-style: inset;
+    background-color: var(--wb-surface-hover);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+input[type='text'],
+input[type='number'] {
+  padding: 4px 8px;
+  max-width: 100%;
+  color: var(--wb-text);
+  background-color: var(--wb-surface);
+  border: 3px solid var(--wb-border);
+  border-radius: 5px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--wb-accent);
+  }
+}
+
+input[type='color'] {
+  width: 44px;
+  height: 28px;
+  padding: 2px;
+  vertical-align: middle;
+  background-color: var(--wb-surface);
+  border: 3px solid var(--wb-border);
+  border-radius: 5px;
+  cursor: pointer;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: 2px;
+  }
+}
+
+select {
+  padding: 4px 8px;
+  max-width: 100%;
+  font-family: inherit;
+  color: var(--wb-text);
+  background-color: var(--wb-surface);
+  border: 3px solid var(--wb-border);
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: var(--wb-accent);
+  }
+}
+
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--wb-accent);
+  cursor: pointer;
+}
+
+input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  accent-color: var(--wb-accent);
+  cursor: pointer;
+}
+
+input[type='file'] {
+  max-width: 100%;
+  color: var(--wb-text-muted);
+
+  &::file-selector-button {
+    margin-right: 10px;
+    padding: 6px 12px;
+    font-weight: bolder;
+    font-family: inherit;
+    color: var(--wb-text);
+    background-color: var(--wb-surface);
+    border: 3px outset white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  &::file-selector-button:hover {
+    border-style: inset;
+    background-color: var(--wb-surface-hover);
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--wb-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--wb-surface-hover);
+  border-radius: 5px;
+}
+
+// CDK dialog backdrop / panel
+.cdk-overlay-dark-backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.cdk-dialog-container {
+  outline: none;
 }

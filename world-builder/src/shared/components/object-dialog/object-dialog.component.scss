@@ -1,14 +1,16 @@
 .dialogWindow {
-  width: 80vw;
-  height: 80vh;
-  border: 8px ridge gray;
-  border-radius: 20px;
-  background-color: #202020;
-  color: white;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
+  width: min(900px, 90vw);
+  max-height: 85vh;
+  padding: 20px;
+  overflow-y: auto;
+  color: white;
+  background-color: #202020;
+  border: 8px ridge gray;
+  border-radius: 20px;
 }
 
 h1 {
@@ -19,26 +21,16 @@ h1 {
 
 hr {
   width: 90%;
-  border-radius: 100%;
+  margin: 10px 0px;
 }
 
 .modes,
-.shapeChoice,
-.formatChoice {
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
-  margin-bottom: 20px;
-
-  button {
-    padding: 10px 20px;
-    font-weight: bolder;
-
-    &:hover {
-      cursor: pointer;
-    }
-  }
+.buttonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  width: 90%;
+  margin: 10px auto;
 }
 
 .controls {
@@ -46,71 +38,64 @@ hr {
 }
 
 .close {
-  width: 25px;
-  height: 25px;
   position: absolute;
   top: 10px;
   right: 10px;
+  width: 32px;
+  height: 32px;
+  padding: 0px;
   border-radius: 100%;
-  font-weight: bolder;
   color: lightgray;
-  background-color: red;
-  border: 3px outset white;
+  background-color: darkred;
 
-  &:hover {
-    cursor: pointer;
+  &:hover:not(:disabled) {
+    background-color: rgb(175, 16, 16);
   }
+}
+
+.shapeParameters,
+.customShape {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px 30px;
+  width: 90%;
+  margin: 20px auto;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.shapeParameters input[type='number'] {
+  width: 90px;
 }
 
 .customShape {
-  width: 100%;
-  display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  margin-top: 20px;
 
-  input {
-    width: 80%;
-    padding: 10px;
-    border-radius: 5px;
-    border: none;
-    background-color: #303030;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 20px 0px;
-
-    &:focus {
-      outline: none;
-      border: 2px solid #4a90e2;
-    }
+  label {
+    flex-direction: column;
+    width: 100%;
+    padding: 15px;
+    border: 3px solid gray;
+    border-radius: 10px;
   }
 }
 
-.shapeParameters {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+.hint {
+  color: lightgray;
+  text-align: center;
+}
 
-  p {
-    width: 80%;
-    margin: 10px 0px;
-    display: flex;
-    padding: 15px;
-    justify-content: center;
-    align-items: center;
+.status {
+  text-align: center;
+  margin: 10px 0px;
+}
 
-    input {
-      padding: 5px 10px;
-      margin: 0px 4px;
-    }
-
-    .color {
-      padding: 0px;
-    }
-  }
+.error {
+  color: tomato;
 }

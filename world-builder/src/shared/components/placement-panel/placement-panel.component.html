@@ -1,0 +1,82 @@
+<div class="placementPanel" *ngIf="placement && summary">
+  <section>
+    <p class="summary" [class.busy]="status !== 'idle'">{{ statusText() }}</p>
+    <div class="row">
+      <label for="placement-seed">Seed</label>
+      <input id="placement-seed" type="number" step="1" [ngModel]="placement.seed" (ngModelChange)="setSeed($event)">
+      <button class="small" (click)="randomizeSeed()">Random</button>
+    </div>
+    <small class="hint">Categories are placed from top to bottom. Later ones keep their distance from earlier ones.</small>
+    <p class="error" *ngIf="summary.failedAssets.length">Could not load: {{ summary.failedAssets.join(', ') }}</p>
+  </section>
+
+  <div class="category" *ngFor="let c of placement.categories; trackBy: trackById">
+    <div class="categoryHeader">
+      <label class="toggle" [for]="'category-' + c.id">
+        <input type="checkbox" [id]="'category-' + c.id" [ngModel]="c.enabled" (ngModelChange)="update(c.id, { enabled: $event })">
+        <h3>{{ c.name }}</h3>
+      </label>
+      <span class="count">{{ (summary.counts[c.id] ?? 0).toLocaleString('en') }}</span>
+    </div>
+
+    <ng-container *ngIf="c.enabled">
+      <div class="slider">
+        <label [for]="'rmin-' + c.id"><span>Minimum distance <i>r<sub>min</sub></i></span><output>{{ c.rMin }} m</output></label>
+        <input type="range" [id]="'rmin-' + c.id" [min]="rMinRange.min" [max]="rMinRange.max" [step]="rMinRange.step"
+          [ngModel]="c.rMin" (ngModelChange)="updateNumber(c.id, 'rMin', $event)">
+      </div>
+
+      <div class="slider">
+        <label><span>Terrain height</span><output>{{ c.heightRange[0].toFixed(2) }} – {{ c.heightRange[1].toFixed(2) }}</output></label>
+        <div class="rangeBar" [style.background]="zoneGradient()" aria-hidden="true">
+          <span class="outside" [style.left.%]="0" [style.width.%]="c.heightRange[0] * 100"></span>
+          <span class="outside" [style.left.%]="c.heightRange[1] * 100" [style.width.%]="(1 - c.heightRange[1]) * 100"></span>
+        </div>
+        <div class="pair">
+          <input type="range" [id]="'hmin-' + c.id" min="0" max="1" step="0.01" aria-label="Lowest terrain height"
+            [ngModel]="c.heightRange[0]" (ngModelChange)="setHeightRange(c, 0, $event)">
+          <input type="range" [id]="'hmax-' + c.id" min="0" max="1" step="0.01" aria-label="Highest terrain height"
+            [ngModel]="c.heightRange[1]" (ngModelChange)="setHeightRange(c, 1, $event)">
+        </div>
+      </div>
+
+      <div class="slider">
+        <label [for]="'slope-' + c.id"><span>Steepest slope</span><output>{{ c.maxSlope }}°</output></label>
+        <input type="range" [id]="'slope-' + c.id" [min]="slopeRange.min" [max]="slopeRange.max" [step]="slopeRange.step"
+          [ngModel]="c.maxSlope" (ngModelChange)="updateNumber(c.id, 'maxSlope', $event)">
+      </div>
+
+      <div class="slider">
+        <label [for]="'density-' + c.id"><span>Density</span><output>{{ (c.density * 100).toFixed(0) }}%</output></label>
+        <input type="range" [id]="'density-' + c.id" min="1" max="100" step="1"
+          [ngModel]="c.density * 100" (ngModelChange)="setPercent(c.id, 'density', $event)">
+      </div>
+
+      <div class="slider">
+        <label [for]="'variation-' + c.id"><span>Size variation</span><output>±{{ (c.scaleVariation * 100).toFixed(0) }}%</output></label>
+        <input type="range" [id]="'variation-' + c.id" min="0" max="50" step="1"
+          [ngModel]="c.scaleVariation * 100" (ngModelChange)="setPercent(c.id, 'scaleVariation', $event)">
+      </div>
+
+      <div class="models">
+        <span class="label">Models</span>
+        <div class="model" *ngFor="let asset of assetsFor(c)">
+          <input type="checkbox" [id]="'asset-' + c.id + '-' + asset.id"
+            [checked]="c.assetIds.includes(asset.id)" (change)="toggleAsset(c, asset.id, $any($event.target).checked)">
+          <label [for]="'asset-' + c.id + '-' + asset.id">{{ asset.name }} <small>{{ asset.height }} m</small></label>
+          <button class="place" [class.active]="placingAssetId === asset.id" (click)="togglePlacing(asset.id)"
+            [title]="'Click the terrain to place ' + asset.name + ' by hand'">Place</button>
+          <small class="warning" *ngIf="asset.warning">{{ asset.warning }}</small>
+        </div>
+        <button class="small" (click)="chooseModel(c.id, modelInput)">Import model…</button>
+      </div>
+
+      <p class="error" *ngIf="c.assetIds.length === 0">Choose at least one model to place {{ c.name.toLowerCase() }}.</p>
+      <p class="error" *ngIf="summary.limitReached.includes(c.id)">
+        Stopped at {{ maxObjects.toLocaleString('en') }} objects. Increase the minimum distance.
+      </p>
+    </ng-container>
+  </div>
+
+  <input #modelInput type="file" accept=".obj,.mtl,.gltf,.glb" multiple hidden (change)="onModelSelected($event)">
+</div>

@@ -7,21 +7,37 @@ import {
   HostListener,
 } from '@angular/core';
 import { SceneService } from '../../services/scene.service';
+import { TerrainMeshService } from '../../services/terrain-mesh.service';
+import { TexturingService } from '../../services/texturing.service';
+import { PlacementLayerService } from '../../services/placement-layer.service';
+import { SelectionService } from '../../services/selection.service';
+import { SelectionBarComponent } from '../selection-bar/selection-bar.component';
 
 @Component({
   selector: 'app-terrain-window',
   templateUrl: './terrain-window.component.html',
   styleUrls: ['./terrain-window.component.scss'],
   standalone: true,
+  imports: [SelectionBarComponent],
 })
 export class TerrainWindowComponent implements AfterViewInit, OnDestroy {
   @ViewChild('rendererContainer', { static: true })
   rendererContainer!: ElementRef;
 
-  constructor(private terrainRenderer: SceneService) {}
+  constructor(
+    private terrainRenderer: SceneService,
+    private terrainMesh: TerrainMeshService,
+    private texturing: TexturingService,
+    private placementLayer: PlacementLayerService,
+    private selection: SelectionService
+  ) {}
 
   ngAfterViewInit(): void {
     this.terrainRenderer.init(this.rendererContainer.nativeElement);
+    this.texturing.start();
+    this.placementLayer.start();
+    this.selection.start();
+    this.terrainMesh.generate();
   }
 
   @HostListener('window:resize')

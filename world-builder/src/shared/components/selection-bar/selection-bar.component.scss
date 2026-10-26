@@ -1,0 +1,61 @@
+:host {
+  position: absolute;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0px 10px;
+  // Only the bar itself catches the mouse; the rest stays on the canvas.
+  pointer-events: none;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: white;
+  background: rgba(32, 32, 32, 0.92);
+  border: 3px ridge gray;
+  border-radius: 10px;
+  pointer-events: auto;
+}
+
+.name {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+
+  small {
+    color: lightgray;
+  }
+}
+
+button {
+  padding: 6px 12px;
+}
+
+.danger {
+  background-color: darkred;
+
+  &:hover:not(:disabled) {
+    background-color: rgb(175, 16, 16);
+  }
+}
+
+.close {
+  padding: 6px 10px;
+}
+
+kbd {
+  margin-left: 4px;
+  padding: 0px 4px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: lightgray;
+  border: 1px solid gray;
+  border-radius: 3px;
+}

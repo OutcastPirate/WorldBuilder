@@ -1,10 +1,6 @@
 import { Injectable } from '@angular/core';
-import { SceneService } from './scene.service';
 import * as THREE from 'three';
 import { Position } from '../interfaces/position';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { AssetInstance, AssetInterface } from '../interfaces/assetInstance';
-import { AssetLoaderService } from './asset-loader.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,24 +8,18 @@ import { AssetLoaderService } from './asset-loader.service';
 export class BasicShapesService {
   constructor() {}
 
+  // All shapes use Y as the height axis and `width` as the footprint size.
   getCube(
     height: number,
     width: number,
     color: string,
     position?: Position
-  ): any {
-    const geometry = new THREE.BoxGeometry(width, width, height);
-    const material = new THREE.MeshStandardMaterial({ color: color });
-    if (!position) {
-      position = {
-        x: 0,
-        y: 0,
-        z: 0,
-      };
-    }
-    geometry.translate(position.x, position.y, position.z);
-    const cube = new THREE.Mesh(geometry, material);
-    return cube;
+  ): THREE.Mesh {
+    return this.createMesh(
+      new THREE.BoxGeometry(width, height, width),
+      color,
+      position
+    );
   }
 
   getCylinder(
@@ -37,19 +27,12 @@ export class BasicShapesService {
     width: number,
     color: string,
     position?: Position
-  ): any {
-    const geometry = new THREE.CylinderGeometry(width / 2, width / 2, height);
-    const material = new THREE.MeshStandardMaterial({ color: color });
-    if (!position) {
-      position = {
-        x: 0,
-        y: 0,
-        z: 0,
-      };
-    }
-    geometry.translate(position.x, position.y, position.z);
-    const cube = new THREE.Mesh(geometry, material);
-    return cube;
+  ): THREE.Mesh {
+    return this.createMesh(
+      new THREE.CylinderGeometry(width / 2, width / 2, height, 32),
+      color,
+      position
+    );
   }
 
   getSphere(
@@ -57,19 +40,11 @@ export class BasicShapesService {
     width: number,
     color: string,
     position?: Position
-  ): any {
-    const geometry = new THREE.SphereGeometry(width / 2);
-    const material = new THREE.MeshStandardMaterial({ color: color });
-    if (!position) {
-      position = {
-        x: 0,
-        y: 0,
-        z: 0,
-      };
-    }
-    geometry.translate(position.x, position.y, position.z);
-    const cube = new THREE.Mesh(geometry, material);
-    return cube;
+  ): THREE.Mesh {
+    // A sphere when height == width, otherwise an ellipsoid stretched along Y.
+    const geometry = new THREE.SphereGeometry(width / 2, 32, 16);
+    geometry.scale(1, height / width, 1);
+    return this.createMesh(geometry, color, position);
   }
 
   getCone(
@@ -77,18 +52,24 @@ export class BasicShapesService {
     width: number,
     color: string,
     position?: Position
-  ): any {
-    const geometry = new THREE.ConeGeometry(width / 2, height);
+  ): THREE.Mesh {
+    return this.createMesh(
+      new THREE.ConeGeometry(width / 2, height, 32),
+      color,
+      position
+    );
+  }
+
+  // Positions the mesh itself (not its geometry) so object.position matches
+  // what is shown in the objects menu.
+  private createMesh(
+    geometry: THREE.BufferGeometry,
+    color: string,
+    position: Position = { x: 0, y: 0, z: 0 }
+  ): THREE.Mesh {
     const material = new THREE.MeshStandardMaterial({ color: color });
-    if (!position) {
-      position = {
-        x: 0,
-        y: 0,
-        z: 0,
-      };
-    }
-    geometry.translate(position.x, position.y, position.z);
-    const cube = new THREE.Mesh(geometry, material);
-    return cube;
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(position.x, position.y, position.z);
+    return mesh;
   }
 }

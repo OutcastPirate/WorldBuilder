@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { SceneService } from '../../services/scene.service';
+import { GenerationConfigService } from '../../services/generation-config.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -20,7 +21,10 @@ export class SceneMenuComponent implements OnInit {
   backgroundColor: any = '#202020';
   fogColor: any = '#cccccc';
 
-  constructor(private sceneService: SceneService) {}
+  constructor(
+    private sceneService: SceneService,
+    private configService: GenerationConfigService
+  ) {}
 
   async ngOnInit(): Promise<void> {
     this.subscription = this.sceneService.scene$.subscribe((scene) =>
@@ -39,14 +43,16 @@ export class SceneMenuComponent implements OnInit {
   }
 
   addFog() {
-    this.scene.fog = new THREE.FogExp2(0xcccccc, 0.03);
+    // Density relative to the terrain size, so the far edge fades out
+    // without hiding the middle of the map.
+    const density = 0.6 / this.configService.config.terrain.worldSize;
+    this.scene.fog = new THREE.FogExp2(0xcccccc, Number(density.toFixed(4)));
     this.scene.background = new THREE.Color(0xcccccc);
-    console.log(this.scene.fog);
   }
 
   restoreDefault() {
+    this.backgroundColor = '#202020';
     this.removeFog();
-    this.scene.background = new THREE.Color(0x202020);
   }
 
   changeBackground(color?: string) {

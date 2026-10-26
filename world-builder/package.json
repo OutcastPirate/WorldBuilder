@@ -8,39 +8,35 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:world-builder": "node dist/world-builder/server/server.mjs",
-    "devStart": "ng serve --live-reload && electron ."
+    "electron:dev": "concurrently -k -n ng,electron -c blue,magenta \"ng serve\" \"wait-on http-get://localhost:4200 && node scripts/start-electron.js --dev\"",
+    "electron:start": "ng build && node scripts/start-electron.js",
+    "electron": "node scripts/start-electron.js"
   },
   "private": true,
   "dependencies": {
     "@angular/animations": "^17.3.12",
-    "@angular/cdk": "^19.2.17",
+    "@angular/cdk": "^17.3.10",
     "@angular/common": "^17.3.0",
     "@angular/compiler": "^17.3.0",
     "@angular/core": "^17.3.0",
     "@angular/forms": "^17.3.0",
-    "@angular/material": "^19.2.17",
     "@angular/platform-browser": "^17.3.0",
     "@angular/platform-browser-dynamic": "^17.3.0",
-    "@angular/platform-server": "^17.3.0",
     "@angular/router": "^17.3.0",
-    "@angular/ssr": "^17.3.11",
-    "express": "^4.18.2",
     "rxjs": "~7.8.0",
+    "simplex-noise": "^4.0.3",
     "three": "^0.176.0",
-    "three-stdlib": "^2.36.0",
     "tslib": "^2.3.0",
-    "world-builder": "file:",
     "zone.js": "~0.14.3"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^17.3.11",
     "@angular/cli": "^17.3.11",
     "@angular/compiler-cli": "^17.3.0",
-    "@types/express": "^4.17.17",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^18.18.0",
     "@types/three": "^0.176.0",
+    "concurrently": "^9.1.2",
     "electron": "^36.3.1",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
@@ -48,6 +44,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.4.2"
+    "typescript": "~5.4.2",
+    "wait-on": "^8.0.3"
   }
 }

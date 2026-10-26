@@ -5,8 +5,13 @@
 </div>
 <div class="objects">
     <p class="info" *ngIf="objects.length == 0">No objects to display</p>
-  <div class="object" *ngFor="let object of objects; let i = index">
-    <p><strong>#{{i + 1}}</strong></p>
+  <div class="object" *ngFor="let object of objects; let i = index" [class.selected]="object === selected">
+    <div class="objectHeader">
+      <strong>#{{i + 1}}</strong>
+      <button class="selectButton" (click)="select(object)" [disabled]="object === selected">
+        {{ object === selected ? 'Selected' : 'Select' }}
+      </button>
+    </div>
     <p>Name: <input type="text" [(ngModel)]="object.name"></p>
 
     <!-- <p>Position: {{object.position.x}}, {{object.position.y}}, {{object.position.z}}</p> -->
@@ -31,9 +36,11 @@
 
     <ng-container *ngIf="detailsVisible[i]">
       <p class="category">Position:</p>
-     <p>X: <input type="Number" step="0.1" [(ngModel)]="object.object.position.x"></p>
-     <p>Y: <input type="Number" step="0.1" [(ngModel)]="object.object.position.y"></p>
-     <p>Z: <input type="Number" step="0.1" [(ngModel)]="object.object.position.z"></p>
+     <p class="checkbox">Stick to ground: <input type="checkbox" [ngModel]="object.snapToGround" (ngModelChange)="setSnapToGround(object, $event)"></p>
+     <p>X: <input type="Number" step="0.1" [(ngModel)]="object.object.position.x" (change)="positionChanged(object)"></p>
+     <p>Y: <input type="Number" step="0.1" [(ngModel)]="object.object.position.y" (change)="notifyChanged()"
+       [disabled]="object.snapToGround" [title]="object.snapToGround ? 'Set by the ground. Turn off Stick to ground to change it.' : ''"></p>
+     <p>Z: <input type="Number" step="0.1" [(ngModel)]="object.object.position.z" (change)="positionChanged(object)"></p>
      <hr>
     <p  class="category">Scale:</p>
     <p class="checkbox">Keep scale ratio: <input  type="checkbox" [(ngModel)]="object.keepRatio" (ngModelChange)="changeScale(object, object.object.scale.x)"></p>
@@ -55,7 +62,6 @@
     <hr>
     <p  class="category">Additional:</p>
     <button (click)="snapObjectDownward(object.object)">Snap down</button>
-    <button (click)="snapObjectDownwardProto(object.object)">Snap down (prototype)</button>
     </ng-container>
 
 

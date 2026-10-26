@@ -1,0 +1,137 @@
+// Fill the space below the tabs and scroll inside it.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.placementPanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 15px;
+  min-height: 0;
+  padding: 0px 10px 20px;
+  overflow-y: auto;
+}
+
+section,
+.category,
+.models {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.summary {
+  font-variant-numeric: tabular-nums;
+
+  &.busy {
+    color: var(--wb-accent);
+  }
+}
+
+.row,
+.categoryHeader,
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.categoryHeader {
+  justify-content: space-between;
+}
+
+.category {
+  padding: 10px;
+  border: 3px ridge gray;
+  border-radius: 10px;
+}
+
+.count {
+  padding: 0px 8px;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid gray;
+  border-radius: 99px;
+}
+
+.small {
+  padding: 4px 10px;
+  align-self: flex-start;
+}
+
+.hint,
+.model small {
+  color: gray;
+}
+
+.error,
+.warning {
+  font-size: 0.85rem;
+  color: tomato;
+}
+
+.slider {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  label {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  output {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.rangeBar {
+  position: relative;
+  height: 10px;
+  border: 1px solid gray;
+  border-radius: 3px;
+  overflow: hidden;
+
+  .outside {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: rgba(20, 20, 20, 0.75);
+  }
+}
+
+.pair {
+  display: flex;
+  gap: 8px;
+}
+
+.label {
+  font-weight: bolder;
+}
+
+.model {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  column-gap: 8px;
+  row-gap: 2px;
+  align-items: center;
+
+  .place {
+    padding: 2px 8px;
+    font-size: 0.8rem;
+  }
+
+  .warning {
+    grid-column: 2 / 4;
+  }
+}

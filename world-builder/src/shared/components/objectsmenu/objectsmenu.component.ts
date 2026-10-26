@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef } from '@angular/core';
 import { ObjectsService } from '../../services/objects.service';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { isMesh, isMaterialWithColor } from '../../interfaces/material_guard';
 import { ObjectDialogComponent } from '../object-dialog/object-dialog.component';
 import { Dialog } from '@angular/cdk/dialog';
+import { SelectionService } from '../../services/selection.service';
 
 ObjectsService;
 
@@ -21,14 +22,32 @@ ObjectsService;
   styleUrl: './objectsmenu.component.scss',
 })
 export class ObjectsmenuComponent {
-  constructor(private objectsService: ObjectsService, private dialog: Dialog) {}
+  constructor(
+    private objectsService: ObjectsService,
+    private dialog: Dialog,
+    private selectionService: SelectionService,
+    private host: ElementRef<HTMLElement>
+  ) {}
   objects: AssetInstance[] = [];
   detailsVisible: boolean[] = [];
+  // Object selected in the 3D view, if it is one of these.
+  selected: AssetInstance | null = null;
   private subscription!: Subscription;
 
   ngOnInit(): void {
     this.subscription = this.objectsService.objects$.subscribe(
       (objects) => (this.objects = objects)
+    );
+    this.subscription.add(
+      this.selectionService.selection$.subscribe((selection) => {
+        this.selected = selection?.kind === 'manual' ? selection.instance : null;
+        // Bring the selected card into view once it has re-rendered.
+        setTimeout(() =>
+          this.host.nativeElement
+            .querySelector('.object.selected')
+            ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        );
+      })
     );
     if (this.objects.length > 0) {
       this.objects.forEach(() => {
@@ -78,10 +97,26 @@ export class ObjectsmenuComponent {
 
   snapObjectDownward(object: any) {
     this.objectsService.snapDown(object);
+    this.objectsService.notifyChanged();
   }
 
-  snapObjectDownwardProto(object: any) {
-    this.objectsService.snapDownPrototype(object);
+  select(object: AssetInstance): void {
+    this.selectionService.select({ kind: 'manual', instance: object });
+  }
+
+  // Position or size edited in the form: let automatic placement react.
+  notifyChanged(): void {
+    this.objectsService.notifyChanged();
+  }
+
+  // X or Z typed in: objects that stick to the ground follow its height.
+  positionChanged(object: AssetInstance): void {
+    if (object.snapToGround) this.objectsService.snapDown(object.object);
+    this.objectsService.notifyChanged();
+  }
+
+  setSnapToGround(object: AssetInstance, snap: boolean): void {
+    this.selectionService.setSnapToGround(object, snap);
   }
 
   setObjectColor(object: THREE.Object3D, event: Event): void {

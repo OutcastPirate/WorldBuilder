@@ -7,18 +7,20 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import * as THREE from 'three';
-import { Position } from '../interfaces/position';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { BehaviorSubject, Observable } from 'rxjs';
 
+// Owns the renderer, camera, controls and lights. The terrain itself is
+// built by TerrainMeshService.
 @Injectable({ providedIn: 'root' })
 export class SceneService implements OnDestroy {
   private renderer!: THREE.WebGLRenderer;
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
+  private controls!: OrbitControls;
+  private sun!: THREE.DirectionalLight;
   private animationId!: number;
-  private terrain!: THREE.Mesh;
   private isBrowser: boolean;
-  private sceneRotation = true;
   private animationRunning = false;
 
   getScene(): THREE.Scene {
@@ -27,6 +29,22 @@ export class SceneService implements OnDestroy {
   getCamera(): THREE.PerspectiveCamera {
     return this.camera;
   }
+  getMaxAnisotropy(): number {
+    return this.renderer?.capabilities.getMaxAnisotropy() ?? 1;
+  }
+  getCanvas(): HTMLCanvasElement {
+    return this.renderer.domElement;
+  }
+  // Orbiting is paused while a transform gizmo is being dragged.
+  setOrbitEnabled(enabled: boolean): void {
+    this.controls.enabled = enabled;
+  }
+  // Runs `callback` before every rendered frame, outside Angular's zone.
+  addFrameCallback(callback: () => void): void {
+    this.frameCallbacks.push(callback);
+  }
+
+  private frameCallbacks: (() => void)[] = [];
 
   constructor(
     private ngZone: NgZone,
@@ -35,88 +53,10 @@ export class SceneService implements OnDestroy {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
-  private _sceneObjects = new BehaviorSubject<any[]>([]);
-  private _terrain = new BehaviorSubject<any>(null);
   private _scene = new BehaviorSubject<any>(null);
-  private _camera = new BehaviorSubject<any>(null);
-  private _renderer = new BehaviorSubject<any>(null);
 
-  updateBehaviorSubjects() {
-    this._scene.next(this.scene);
-    this._camera.next(this.camera);
-    this._renderer.next(this.renderer);
-    this._terrain.next(this.terrain);
-  }
-
-  setBehaviorSubjects() {
-    this.scene = this._scene.getValue();
-    this.camera = this._camera.getValue();
-    this.renderer = this._renderer.getValue();
-    this.terrain = this._terrain.getValue();
-  }
-
-  addSceneObject(object: any): void {
-    const currentObjects = this._sceneObjects.getValue();
-    this._sceneObjects.next([...currentObjects, object]);
-    this.scene.add(object);
-
-    this.updateBehaviorSubjects();
-  }
   // Public observable for components to subscribe to
-  sceneObjects$: Observable<any[]> = this._sceneObjects.asObservable();
-  terrain$: Observable<any> = this._terrain.asObservable();
   scene$: Observable<any> = this._scene.asObservable();
-  camera$: Observable<any> = this._camera.asObservable();
-  renderer$: Observable<any> = this._renderer.asObservable();
-
-  getTerrain(): THREE.Mesh {
-    if (!this.terrain) {
-      console.warn('Terrain mesh not initialized yet.');
-      return new THREE.Mesh();
-    }
-    return this.terrain;
-  }
-
-  addDisplacedPlane() {
-    const width = 20;
-    const height = 20;
-    const widthSegments = 30;
-    const heightSegments = 30;
-    const geometry = new THREE.PlaneGeometry(
-      width,
-      height,
-      widthSegments,
-      heightSegments
-    );
-
-    const positionAttribute = geometry.attributes['position'];
-
-    for (let i = 0; i < positionAttribute.count; i++) {
-      const x = positionAttribute.getX(i);
-      const y = positionAttribute.getY(i);
-      const z = positionAttribute.getZ(i);
-
-      const displacement = (Math.random() - 0.5) * 0.5;
-      positionAttribute.setZ(i, z + displacement);
-    }
-
-    geometry.computeVertexNormals();
-
-    const material = new THREE.MeshStandardMaterial({
-      color: 'green',
-      side: THREE.DoubleSide,
-      flatShading: false,
-      wireframe: false,
-    });
-
-    geometry.rotateX(-Math.PI / 2);
-    const plane = new THREE.Mesh(geometry, material);
-    this.addSceneObject(plane);
-    this.terrain = plane;
-    this._terrain.next(plane);
-    console.log(plane);
-    this.updateBehaviorSubjects();
-  }
 
   init(container: HTMLElement): void {
     if (!this.isBrowser) return;
@@ -126,47 +66,66 @@ export class SceneService implements OnDestroy {
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(width, height);
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(this.renderer.domElement);
 
-    // Use the scene from the BehaviorSubject
     this.scene = this._scene.getValue() || new THREE.Scene();
-
     this.scene.background = new THREE.Color(0x202020);
 
     this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 3000);
-    this.camera.position.z = 27;
-    this.camera.position.y = 5;
 
-    const lightOne = new THREE.DirectionalLight(0xffffff, 1);
-    lightOne.castShadow = true;
-    const lightTwo = new THREE.DirectionalLight(0xffffff, 1);
-    // lightTwo.castShadow = true;
-    const lightThree = new THREE.DirectionalLight(0xffffff, 1);
-    // lightThree.castShadow = true;
-    const lightFour = new THREE.DirectionalLight(0xffffff, 1);
-    // lightFour.castShadow = true;
+    // The camera orbits the scene, the scene itself stays still so object
+    // positions remain in world coordinates.
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true;
+    this.controls.autoRotate = true;
+    this.controls.autoRotateSpeed = 0.6;
 
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // Sky/ground fill plus one shadow-casting sun.
+    const hemisphere = new THREE.HemisphereLight(0xdde8f5, 0x3d4a33, 1.2);
+    this.scene.add(hemisphere);
 
-    lightOne.position.set(10, 10, 10);
-    this.scene.add(lightOne);
-    lightTwo.position.set(-10, 10, 10);
-    this.scene.add(lightTwo);
-    lightThree.position.set(10, -10, 10);
-    this.scene.add(lightThree);
-    lightFour.position.set(-10, -10, 10);
-    this.scene.add(lightFour);
+    this.sun = new THREE.DirectionalLight(0xfff1dc, 2.4);
+    this.sun.castShadow = true;
+    this.sun.shadow.mapSize.set(2048, 2048);
+    this.sun.shadow.bias = -0.0005;
+    this.sun.shadow.normalBias = 0.05;
+    this.scene.add(this.sun);
 
-    const geometry = new THREE.BoxGeometry(20, 0.1, 20);
-    const material = new THREE.MeshStandardMaterial({ color: 'blue' });
-    // this.terrain = new THREE.Mesh(geometry, material);
-    // this.scene.add(this.terrain);
-
+    this.configureForWorld(30, 5);
     this.startAnimation();
-    this.addDisplacedPlane();
+    this._scene.next(this.scene);
+  }
 
-    this.updateBehaviorSubjects();
+  // Frames the camera and fits the sun's shadow area to a terrain of the
+  // given size. Called whenever the terrain's dimensions change.
+  configureForWorld(worldSize: number, heightScale: number): void {
+    if (!this.camera) return;
+
+    this.camera.position.set(0, heightScale + worldSize * 0.45, worldSize * 0.85);
+    this.camera.far = worldSize * 10;
+    this.camera.updateProjectionMatrix();
+    this.controls.target.set(0, heightScale * 0.3, 0);
+    this.controls.maxDistance = worldSize * 3;
+    this.controls.update();
+    this.controls.saveState();
+
+    this.sun.position.set(
+      worldSize * 0.6,
+      heightScale + worldSize * 0.8,
+      worldSize * 0.35
+    );
+    const shadowCamera = this.sun.shadow.camera;
+    const half = worldSize * 0.75;
+    shadowCamera.left = -half;
+    shadowCamera.right = half;
+    shadowCamera.top = half;
+    shadowCamera.bottom = -half;
+    shadowCamera.near = 0.5;
+    shadowCamera.far = worldSize * 3 + heightScale;
+    shadowCamera.updateProjectionMatrix();
   }
 
   private startAnimation(): void {
@@ -177,40 +136,25 @@ export class SceneService implements OnDestroy {
       const animate = () => {
         if (!this.animationRunning) return;
         this.animationId = requestAnimationFrame(animate);
-        if (this.sceneRotation) {
-          this.scene.rotation.y += 0.001;
-        }
+        this.controls.update();
+        this.frameCallbacks.forEach((callback) => callback());
         this.renderer.render(this.scene, this.camera);
       };
       animate();
     });
-    this.updateBehaviorSubjects();
   }
 
   stopRotation(): void {
-    this.sceneRotation = false;
-    this.startAnimation();
-    this.updateBehaviorSubjects();
+    this.controls.autoRotate = false;
   }
 
   startRotation(): void {
-    this.sceneRotation = true;
-    this.startAnimation();
-    this.updateBehaviorSubjects();
+    this.controls.autoRotate = true;
   }
 
+  // Restores the initial camera position and target (auto-rotate is kept as is).
   resetRotation(): void {
-    this.scene.rotation.y = 0;
-    this.updateBehaviorSubjects();
-  }
-
-  rotateScene(direction: string): void {
-    if (direction === 'left') {
-      this.scene.rotation.y -= 0.1;
-    } else if (direction === 'right') {
-      this.scene.rotation.y += 0.1;
-    }
-    this.updateBehaviorSubjects();
+    this.controls.reset();
   }
 
   onResize(container: HTMLElement): void {
@@ -222,16 +166,16 @@ export class SceneService implements OnDestroy {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
-    this.updateBehaviorSubjects();
   }
 
   ngOnDestroy(): void {
     if (this.isBrowser && this.animationId) {
       cancelAnimationFrame(this.animationId);
     }
+    this.animationRunning = false;
+    this.controls?.dispose();
     if (this.isBrowser && this.renderer) {
       this.renderer.dispose();
     }
-    this.updateBehaviorSubjects();
   }
 }

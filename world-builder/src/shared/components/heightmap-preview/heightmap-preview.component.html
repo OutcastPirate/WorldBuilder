@@ -1,0 +1,6 @@
+<figure class="preview">
+  <canvas #canvas [width]="size" [height]="size" aria-label="Heightmap preview"></canvas>
+  <figcaption class="legend">
+    <span *ngFor="let zone of texturing.zones"><i [style.background]="zone.color"></i>{{ zone.name }}</span>
+  </figcaption>
+</figure>

@@ -1,0 +1,113 @@
+// Fill the side menu below the tabs and scroll inside it.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.terrainPanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 15px;
+  min-height: 0;
+  padding: 0px 10px 20px;
+  overflow-y: auto;
+}
+
+hr {
+  width: 100%;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader,
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.generate {
+  width: 100%;
+  padding: 12px 20px;
+}
+
+.small {
+  padding: 4px 12px;
+}
+
+.status {
+  font-size: 0.8rem;
+  color: lightgray;
+  text-align: center;
+
+  &.pending {
+    color: var(--wb-accent);
+  }
+}
+
+.slider {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  label {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  i {
+    color: lightgray;
+  }
+
+  output {
+    font-variant-numeric: tabular-nums;
+  }
+
+  small {
+    color: gray;
+  }
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  input,
+  select {
+    width: 55%;
+  }
+}
+
+.note {
+  color: gray;
+  text-align: right;
+}
+
+.shapes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}

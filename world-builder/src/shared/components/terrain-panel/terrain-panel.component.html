@@ -1,0 +1,95 @@
+<div class="terrainPanel" *ngIf="config">
+  <app-heightmap-preview [config]="config.terrain" [texturing]="config.texturing"></app-heightmap-preview>
+
+  <div class="actions">
+    <button class="generate" (click)="generate()" [disabled]="generating">
+      {{ generating ? 'Generating…' : 'Generate terrain' }}
+    </button>
+    <p class="status" [class.pending]="hasPendingChanges">
+      {{ hasPendingChanges ? 'Preview has changes not applied to the 3D view' : 'The 3D view matches the preview' }}
+    </p>
+  </div>
+
+  <hr>
+
+  <section>
+    <h3>Map shape</h3>
+    <div class="shapes" role="radiogroup" aria-label="Map shape">
+      <button role="radio" [class.active]="config.terrain.shape === 'square'" [attr.aria-checked]="config.terrain.shape === 'square'"
+        (click)="setShape('square')">Square</button>
+      <button role="radio" [class.active]="config.terrain.shape === 'circle'" [attr.aria-checked]="config.terrain.shape === 'circle'"
+        (click)="setShape('circle')">Island (circle)</button>
+    </div>
+    <div class="slider">
+      <label for="terrain-falloff">
+        <span>Edge falloff</span>
+        <output>{{ (config.terrain.edgeFalloff * 100).toFixed(0) }}%</output>
+      </label>
+      <input type="range" id="terrain-falloff" [min]="falloffRange.min" [max]="falloffRange.max" [step]="falloffRange.step"
+        [ngModel]="config.terrain.edgeFalloff" (ngModelChange)="update('edgeFalloff', $event)">
+      <small>0: cliffs at the border · higher: terrain slopes down to a beach</small>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <div class="sectionHeader">
+      <h3>Noise</h3>
+      <button class="small" (click)="resetNoise()">Reset</button>
+    </div>
+    <div class="slider" *ngFor="let slider of noiseSliders">
+      <label [for]="'noise-' + slider.key">
+        <span>{{ slider.label }} <i>{{ slider.symbol }}</i></span>
+        <output>{{ config.terrain[slider.key] }}</output>
+      </label>
+      <input
+        type="range"
+        [id]="'noise-' + slider.key"
+        [min]="ranges[slider.key].min"
+        [max]="ranges[slider.key].max"
+        [step]="ranges[slider.key].step"
+        [ngModel]="config.terrain[slider.key]"
+        (ngModelChange)="update(slider.key, $event)">
+      <small>{{ slider.hint }}</small>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h3>Seed</h3>
+    <div class="row">
+      <input id="terrain-seed" type="number" step="1" [ngModel]="config.terrain.seed" (ngModelChange)="update('seed', $event)">
+      <button class="small" (click)="randomizeSeed()">Random</button>
+    </div>
+  </section>
+
+  <hr>
+
+  <section>
+    <h3>Grid</h3>
+    <label class="field" for="terrain-resolution">
+      <span>Resolution (vertices)</span>
+      <select id="terrain-resolution" [ngModel]="config.terrain.resolution" (ngModelChange)="update('resolution', $event)">
+        <option *ngFor="let r of resolutions" [ngValue]="r">{{ r }} × {{ r }}</option>
+      </select>
+    </label>
+    <label class="field" for="terrain-size">
+      <span>World size (m)</span>
+      <input id="terrain-size" type="number" [min]="worldSizeRange.min" [max]="worldSizeRange.max" [step]="worldSizeRange.step"
+        [ngModel]="config.terrain.worldSize" (ngModelChange)="update('worldSize', $event)">
+    </label>
+    <label class="field" for="terrain-height">
+      <span>Max height (m)</span>
+      <input id="terrain-height" type="number" [min]="heightScaleRange.min" [max]="heightScaleRange.max" [step]="heightScaleRange.step"
+        [ngModel]="config.terrain.heightScale" (ngModelChange)="update('heightScale', $event)">
+    </label>
+    <label class="field" for="terrain-thickness">
+      <span>Base thickness (m)</span>
+      <input id="terrain-thickness" type="number" [min]="thicknessRange.min" [max]="thicknessRange.max" [step]="thicknessRange.step"
+        [ngModel]="config.terrain.baseThickness" (ngModelChange)="update('baseThickness', $event)">
+    </label>
+    <small class="note">{{ metresPerVertex() }} m between vertices</small>
+  </section>
+</div>

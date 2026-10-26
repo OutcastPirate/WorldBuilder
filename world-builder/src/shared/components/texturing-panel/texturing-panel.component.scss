@@ -1,0 +1,185 @@
+// Fill the side menu below the tabs and scroll inside it.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+.texturingPanel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 15px;
+  min-height: 0;
+  padding: 0px 10px 20px;
+  overflow-y: auto;
+}
+
+hr {
+  width: 100%;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeader,
+.inline,
+.field,
+.zoneHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.small {
+  padding: 4px 8px;
+}
+
+.danger {
+  background-color: darkred;
+}
+
+.inline input,
+.zoneHead input[type='text'] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.chip {
+  padding: 0px 8px;
+  font-size: 0.75rem;
+  color: var(--wb-accent);
+  border: 1px solid currentColor;
+  border-radius: 99px;
+}
+
+.message {
+  font-size: 0.85rem;
+  color: lightgray;
+
+  &.error {
+    color: tomato;
+  }
+}
+
+.baking,
+.hint,
+.slider small {
+  color: gray;
+}
+
+.zoneBar {
+  position: relative;
+  height: 240px;
+  margin: 8px 0px;
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 48px;
+  width: 64px;
+  border: 3px ridge gray;
+  border-radius: 5px;
+}
+
+.zoneLabel {
+  position: absolute;
+  left: 124px;
+  transform: translateY(50%);
+  font-size: 0.85rem;
+}
+
+.handle {
+  position: absolute;
+  left: 0px;
+  display: flex;
+  align-items: center;
+  width: 118px;
+  height: 20px;
+  padding: 0px;
+  transform: translateY(50%);
+  background: none;
+  border: none;
+  cursor: ns-resize;
+  touch-action: none;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: none;
+    border: none;
+    outline: none;
+
+    &::after {
+      background: var(--wb-accent);
+    }
+  }
+
+  .value {
+    width: 46px;
+    padding-right: 6px;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  &::after {
+    content: '';
+    flex: 1;
+    height: 5px;
+    background: white;
+    border: 1px solid #202020;
+    border-radius: 3px;
+  }
+}
+
+.slider {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  label {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  output {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.zone {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 3px ridge gray;
+  border-radius: 10px;
+}
+
+.field select {
+  width: 62%;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  input {
+    width: 70px;
+  }
+}

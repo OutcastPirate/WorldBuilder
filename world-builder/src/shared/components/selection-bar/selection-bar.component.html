@@ -1,0 +1,26 @@
+<div class="bar" *ngIf="placingName; else selectedTemplate" role="status">
+  <span>Click the terrain to place <b>{{ placingName }}</b></span>
+  <button (click)="selectionService.stopPlacing()">Done <kbd>Esc</kbd></button>
+</div>
+
+<ng-template #selectedTemplate>
+  <div class="bar" *ngIf="selection" role="toolbar" aria-label="Selected object">
+    <span class="name"><b>{{ description.name }}</b> <small>{{ description.detail }}</small></span>
+
+    <ng-container *ngIf="selection.kind === 'manual'">
+      <button [class.active]="mode === 'translate'" (click)="selectionService.setMode('translate')">Move <kbd>W</kbd></button>
+      <button [class.active]="mode === 'rotate'" (click)="selectionService.setMode('rotate')">Rotate <kbd>E</kbd></button>
+      <button [class.active]="selection.instance.snapToGround" [attr.aria-pressed]="selection.instance.snapToGround"
+        (click)="selectionService.setSnapToGround(selection.instance, !selection.instance.snapToGround)"
+        title="When on, the object stays on the ground while you move it">
+        Stick to ground: {{ selection.instance.snapToGround ? 'on' : 'off' }} <kbd>G</kbd>
+      </button>
+    </ng-container>
+
+    <button *ngIf="selection.kind === 'generated'" (click)="selectionService.makeEditable()"
+      title="Turns it into a hand-placed object you can move and rotate">Make editable</button>
+
+    <button class="danger" (click)="selectionService.deleteSelection()">Delete <kbd>Del</kbd></button>
+    <button class="close" (click)="selectionService.clear()" aria-label="Clear selection">✕</button>
+  </div>
+</ng-template>

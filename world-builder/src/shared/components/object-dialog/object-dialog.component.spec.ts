@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { DialogRef } from '@angular/cdk/dialog';
 
 import { ObjectDialogComponent } from './object-dialog.component';
 
@@ -8,7 +9,8 @@ describe('ObjectDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ObjectDialogComponent]
+      imports: [ObjectDialogComponent],
+      providers: [{ provide: DialogRef, useValue: { close: () => {} } }]
     })
     .compileComponents();
     

@@ -6,6 +6,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
+import { PredefinedAsset } from '../interfaces/predefinedAsset';
 
 @Injectable({ providedIn: 'root' })
 export class AssetLoaderService {
@@ -16,13 +17,47 @@ export class AssetLoaderService {
   constructor() {
     this.gltfLoader = new GLTFLoader();
 
-    // Optional: For compressed GLTF models
+    // Optional: For compressed GLTF models. The decoders are copied from
+    // node_modules/three into the build (see angular.json), so this works offline.
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+    dracoLoader.setDecoderPath('draco/');
     this.gltfLoader.setDRACOLoader(dracoLoader);
 
     this.fbxLoader = new FBXLoader();
     this.objLoader = new OBJLoader();
+  }
+
+  static readonly PREDEFINED_PATH = 'assets/predefined/';
+
+  async loadPredefinedManifest(): Promise<PredefinedAsset[]> {
+    const response = await fetch(
+      AssetLoaderService.PREDEFINED_PATH + 'manifest.json'
+    );
+    if (!response.ok) {
+      throw new Error(`Cannot load asset manifest: ${response.status}`);
+    }
+    return response.json();
+  }
+
+  // Picks the loader by file extension. `materialUrl` is only used for OBJ.
+  loadModel(
+    url: string,
+    extension: string,
+    materialUrl?: string
+  ): Promise<THREE.Group> {
+    switch (extension.toLowerCase()) {
+      case 'gltf':
+      case 'glb':
+        return this.loadGLTF(url);
+      case 'fbx':
+        return this.loadFBX(url);
+      case 'obj':
+        return materialUrl
+          ? this.loadOBJWithMTL(url, materialUrl)
+          : this.loadOBJ(url);
+      default:
+        return Promise.reject(new Error(`Unsupported format: ${extension}`));
+    }
   }
 
   async loadGLTF(url: string): Promise<THREE.Group> {

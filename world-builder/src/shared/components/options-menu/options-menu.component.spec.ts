@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { OptionsMenuComponent } from './options-menu.component';
 
@@ -8,7 +9,8 @@ describe('OptionsMenuComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OptionsMenuComponent]
+      imports: [OptionsMenuComponent],
+      providers: [provideRouter([])]
     })
     .compileComponents();
     

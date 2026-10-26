@@ -1,23 +1,20 @@
 <div class="dialogWindow">
+  <button class="close" (click)="close()" title="Close">X</button>
   <h1>Add Object</h1>
   <div class="modes">
-    <button class="mode" (click)="setMode('Basic')">Basic</button>
-    <button class="mode" (click)="setMode('Predefined')">Predefined</button>
-    <button class="mode" (click)="setMode('Custom')">Custom</button>
+    <button *ngFor="let m of ['Basic', 'Predefined', 'Custom']" [class.active]="mode == m" (click)="setMode(m)">
+      {{m}}
+    </button>
   </div>
-  <hr>
-    <h1>{{mode}}</h1>
   <hr>
   <div class="controls">
     <div *ngIf="mode == 'Basic'">
-        <div class="shapeParameters">
-        <p>Shape height: <input type="number" [(ngModel)]="basicShape.height"></p>
-        <p>Shape width: <input type="number" [(ngModel)]="basicShape.width"></p>
-        <p>Shape color: <input type="color" [(ngModel)]="basicShape.color" class="color"></p>
-
-        </div>
-      <div class="shapeChoice">
-
+      <div class="shapeParameters">
+        <label>Height <input type="number" min="0.1" step="0.1" [(ngModel)]="basicShape.height"></label>
+        <label>Width <input type="number" min="0.1" step="0.1" [(ngModel)]="basicShape.width"></label>
+        <label>Color <input type="color" [(ngModel)]="basicShape.color"></label>
+      </div>
+      <div class="buttonGrid">
         <button (click)="addBasicShape('Cube',basicShape)">Add Cube</button>
         <button (click)="addBasicShape('Sphere',basicShape)">Add Sphere</button>
         <button (click)="addBasicShape('Cylinder',basicShape)">Add Cylinder</button>
@@ -25,26 +22,22 @@
       </div>
     </div>
     <div *ngIf="mode == 'Predefined'">
-      <p *ngFor="let asset of predefindedAssets">{{asset}}</p>
+      <p class="hint" *ngIf="predefinedAssets.length == 0 && !errorMessage">Loading asset list…</p>
+      <div class="buttonGrid">
+        <button *ngFor="let asset of predefinedAssets" (click)="addPredefined(asset)" [disabled]="loadingAsset">
+          {{asset.name}}
+        </button>
+      </div>
     </div>
     <div *ngIf="mode == 'Custom'">
       <div class="customShape">
-        <p>* the program only accepts .obj, .gltf and .glb files</p>
-        <div class="formatChoice">
-          <button (click)="setFormat('obj')">OBJ</button>
-          <button (click)="setFormat('gltf')">GLTF/GLB</button>
-        </div>
-        <input type="file" (change)="onFileSelected($event)" accept=".obj, .gltf, .glb">
-        <input type="file" (change)="onMaterialFileSelected($event)" accept=".mtl">
-
-        <button (click)="chooseFile()">Load file</button>
+        <p class="hint">* the program only accepts .obj, .gltf and .glb files (.gltf must have its data embedded)</p>
+        <label>Model <input type="file" (change)="onFileSelected($event)" accept=".obj, .gltf, .glb"></label>
+        <label>Material (optional, OBJ only) <input type="file" (change)="onMaterialFileSelected($event)" accept=".mtl"></label>
+        <button (click)="chooseFile()" [disabled]="loadingAsset">Load file</button>
       </div>
-
     </div>
-    <!-- <button (click)="addCube(1, 1, 'green', { x: 1, y: 1, z: 0.2 })">Add cube</button>
-    <button (click)="addSphere(1, 32, 32, 'red', { x: 1, y: 1, z: 0.2 })">Add sphere</button>
-    <button (click)="addCylinder(1, 1, 32, 'blue', { x: 1, y: 1, z: 0.2 })">Add cylinder</button>
-    <button (click)="addTorus(0.5, 0.2, 16, 32, 'yellow', { x: 1, y: 1, z: 0.2 })">Add torus</button> -->
-    <!-- <button (click)="openObjectDialog()">Add OBJ</button> -->
-    <button class='close' (click)="close()">X</button>
+    <p class="status" *ngIf="loadingAsset">Loading {{loadingAsset}}…</p>
+    <p class="status error" *ngIf="errorMessage">{{errorMessage}}</p>
+  </div>
 </div>

@@ -18,10 +18,22 @@
   width: 100%;
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
   justify-content: space-evenly;
+  padding: 0px 10px;
+  // Let mouse events outside the buttons reach the canvas (orbit controls).
+  pointer-events: none;
 
   button {
     padding: 10px 20px;
+    pointer-events: auto;
+    background-color: rgba(48, 48, 48, 0.85);
   }
+}
+
+// The renderer appends its canvas here; keep it from adding scroll space.
+:host ::ng-deep canvas {
+  display: block;
 }

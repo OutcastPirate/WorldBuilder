@@ -1,0 +1,45 @@
+[
+  { "id": "bush", "name": "Bush", "file": "bush.obj", "material": "bush.mtl", "category": "vegetation", "height": 1.2, "color": "#3f6e2c" },
+  { "id": "pillar", "name": "Stone pillar", "file": "pillar.obj", "material": "pillar.mtl", "category": "buildings", "height": 4, "color": "#b8b2a6" },
+  { "id": "untitled", "name": "Flat stone", "file": "untitled.obj", "material": "untitled.mtl", "category": "rocks", "height": 0.5 },
+  { "id": "dead-tree", "name": "Dead tree", "file": "dead_tree.obj", "category": "vegetation", "height": 5, "color": "#6e5a46" },
+  {
+    "id": "lowpoly-tree",
+    "name": "Low-poly tree",
+    "file": "lowPolyTree/Lowpoly_tree_sample.obj",
+    "material": "lowPolyTree/Lowpoly_tree_sample.mtl",
+    "category": "vegetation",
+    "height": 6
+  },
+  {
+    "id": "tree",
+    "name": "Tree (19 MB)",
+    "file": "Tree1.gltf",
+    "category": "vegetation",
+    "height": 8,
+    "warning": "About 249,000 triangles per tree. Place only a few, with a large minimum distance."
+  },
+  {
+    "id": "skull",
+    "name": "Skull (6 MB)",
+    "file": "skull/12140_Skull_v3_L2.obj",
+    "material": "skull/12140_Skull_v3_L2.mtl"
+  },
+  {
+    "id": "camaro-low",
+    "name": "Chevrolet Camaro SS (low poly)",
+    "file": "camaro/Chevrolet_Camaro_SS_Low.obj",
+    "material": "camaro/Chevrolet_Camaro_SS_Low.mtl"
+  },
+  {
+    "id": "camaro-high",
+    "name": "Chevrolet Camaro SS (high poly, 15 MB)",
+    "file": "camaro/Chevrolet_Camaro_SS_High.obj",
+    "material": "camaro/Chevrolet_Camaro_SS_High.mtl"
+  },
+  {
+    "id": "mercedes",
+    "name": "Mercedes-Benz GLS 580 (30 MB)",
+    "file": "mercedes/uploads_files_2787791_Mercedes+Benz+GLS+580.obj"
+  }
+]
